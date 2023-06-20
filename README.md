@@ -14,6 +14,6 @@ As a result, `JavaLib_Common` contains the complete history of all files, but on
 All other files were moved into the "extract" libraries, but without their history.
 
 ### Usage / Development
-The current state of this libray is compatible with JAVA 17. But most of its code should be compatible with JAVA 8.  
+The current state of this library is compatible with JAVA 17. But most of its code should be compatible with JAVA 8.  
 This is an Eclipse project. `.classpath` and `.project` files are contained in the repository.  
 `JavaLib_Common_Essentials` don't depends on other libraries.
