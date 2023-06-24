@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.util.EnumMap;
 import java.util.Vector;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
@@ -71,14 +72,19 @@ public class IconSource<E extends Enum<E>> {
 
 	public void readIconsFromResource(String resourcePath) {
 //		String resourcePath = "/Toolbar.png";
-		InputStream stream = getClass().getResourceAsStream(resourcePath);
+		readIconsFromResource(resourcePath, () -> getClass().getResourceAsStream(resourcePath));
+	}
+
+	public void readIconsFromResource(String resourceLabel, Supplier<InputStream> getInputStream)
+	{
+		InputStream stream = getInputStream.get();
 		if (stream==null) {
-			System.err.printf("IconSource: Can't open resource stream \"%s\".\r\n",resourcePath);
+			System.err.printf("IconSource: Can't open resource stream \"%s\".\r\n",resourceLabel);
 			return;
 		}
 		try { images = ImageIO.read(stream); }
 		catch (IOException e) {
-			System.err.printf("IconSource: IOException while reading icon image file from resource \"%s\".",resourcePath);
+			System.err.printf("IconSource: IOException while reading icon image file from resource \"%s\".",resourceLabel);
 			return;
 		}
 	}
@@ -220,6 +226,18 @@ public class IconSource<E extends Enum<E>> {
 	public static <E extends Enum<E>> CachedIcons<E> createCachedIcons(int iconWidth, int iconHeight, int columnCount, String resourcePath, E[] keys) {
 		IconSource<E> source = new IconSource<E>(iconWidth,iconHeight,columnCount);
 		source.readIconsFromResource(resourcePath);
+		return source.cacheIcons(keys);
+	}
+
+	public static <E extends Enum<E>> CachedIcons<E> createCachedIcons(int iconWidth, int iconHeight, String resourceLabel, Supplier<InputStream> getInputStream, E[] keys) {
+		IconSource<E> source = new IconSource<E>(iconWidth,iconHeight);
+		source.readIconsFromResource(resourceLabel, getInputStream);
+		return source.cacheIcons(keys);
+	}
+
+	public static <E extends Enum<E>> CachedIcons<E> createCachedIcons(int iconWidth, int iconHeight, int columnCount, String resourceLabel, Supplier<InputStream> getInputStream, E[] keys) {
+		IconSource<E> source = new IconSource<E>(iconWidth,iconHeight,columnCount);
+		source.readIconsFromResource(resourceLabel, getInputStream);
 		return source.cacheIcons(keys);
 	}
 
