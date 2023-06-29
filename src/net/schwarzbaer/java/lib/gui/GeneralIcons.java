@@ -12,11 +12,20 @@ public final class GeneralIcons
 	}
 	
 	public enum GrayCommandIcons {
-		Muted, UnMuted, Up, Down, Power_IsOn, Power_IsOff, Reload, Download, Image, Save, Add, Copy, Paste, Cut, Delete, Folder, AddFolder, ReloadFolder,
-		Muted_Dis, UnMuted_Dis, Up_Dis, Down_Dis, Power_IsOn_Dis, Power_IsOff_Dis, Reload_Dis, Download_Dis, Image_Dis, Save_Dis, Add_Dis, Copy_Dis, Paste_Dis, Cut_Dis, Delete_Dis, Folder_Dis, AddFolder_Dis, ReloadFolder_Dis,
+		Muted, UnMuted, Up, Down, Power_IsOn, Power_IsOff,
+		Reload, Download, Image, Save, Add,
+		Copy, Paste, Cut, Delete,
+		Folder, AddFolder, ReloadFolder,
+		Play, Pause, Stop, Skip2Prev, Skip2Next,
+		
+		Muted_Dis, UnMuted_Dis, Up_Dis, Down_Dis, Power_IsOn_Dis, Power_IsOff_Dis,
+		Reload_Dis, Download_Dis, Image_Dis, Save_Dis, Add_Dis,
+		Copy_Dis, Paste_Dis, Cut_Dis, Delete_Dis,
+		Folder_Dis, AddFolder_Dis, ReloadFolder_Dis,
+		Play_Dis, Pause_Dis, Stop_Dis, Skip2Prev_Dis, Skip2Next_Dis,
 		;
 		public Icon getIcon() { return iconSource.getCachedIcon(this); }
-		private static IconSource.CachedIcons<GrayCommandIcons> iconSource = IconSource.createCachedIcons(16, 16, 18, "GeneralIcons.GrayCommandIcons.png", GrayCommandIcons.values());
+		private static IconSource.CachedIcons<GrayCommandIcons> iconSource = IconSource.createCachedIcons(16, 16, 23, "GeneralIcons.GrayCommandIcons.png", GrayCommandIcons.values());
 		
 		public enum IconGroup implements GeneralIcons.IconGroup {
 			Muted        (GrayCommandIcons.Muted       , GrayCommandIcons.Muted_Dis       ),
@@ -37,6 +46,11 @@ public final class GeneralIcons
 			Folder       (GrayCommandIcons.Folder      , GrayCommandIcons.Folder_Dis      ),
 			AddFolder    (GrayCommandIcons.AddFolder   , GrayCommandIcons.AddFolder_Dis   ),
 			ReloadFolder (GrayCommandIcons.ReloadFolder, GrayCommandIcons.ReloadFolder_Dis),
+			Play         (GrayCommandIcons.Play        , GrayCommandIcons.Play_Dis        ),
+			Pause        (GrayCommandIcons.Pause       , GrayCommandIcons.Pause_Dis       ),
+			Stop         (GrayCommandIcons.Stop        , GrayCommandIcons.Stop_Dis        ),
+			Skip2Prev    (GrayCommandIcons.Skip2Prev   , GrayCommandIcons.Skip2Prev_Dis   ),
+			Skip2Next    (GrayCommandIcons.Skip2Next   , GrayCommandIcons.Skip2Next_Dis   ),
 			;
 			public final GrayCommandIcons  enabledIcon;
 			public final GrayCommandIcons disabledIcon;
