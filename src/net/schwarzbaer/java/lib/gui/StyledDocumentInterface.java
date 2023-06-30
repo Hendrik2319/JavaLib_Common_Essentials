@@ -93,6 +93,8 @@ public class StyledDocumentInterface {
 	public static class Style {
 		public static final Style BOLD   = new Style(true, false);
 		public static final Style ITALIC = new Style(false, true);
+		/** FontFamily: Monospaced */
+		public static final String MONOSPACED = "monospaced";
 		
 		public final Color textColor;
 		public final Color backgroundColor;
