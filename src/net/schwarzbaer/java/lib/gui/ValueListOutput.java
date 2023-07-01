@@ -11,7 +11,9 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 public class ValueListOutput extends Vector<ValueListOutput.Entry> {
+
 	private static final long serialVersionUID = -5898390765518030500L;
+	public static final String DEFAULT_INDENT = "    ";
 	
 	private Style nextEntryLabelStyle = null;
 	private Style nextEntryValueStyle = null;
@@ -93,7 +95,7 @@ public class ValueListOutput extends Vector<ValueListOutput.Entry> {
 				{
 					String str = "";
 					for (int i=0; i<entry.indentLevel; i++)
-						str += "    ";
+						str += DEFAULT_INDENT;
 					indents.put(entry.indentLevel, str);
 				}
 				
