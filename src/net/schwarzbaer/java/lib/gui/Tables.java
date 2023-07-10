@@ -465,6 +465,31 @@ public class Tables {
 	public static interface SimplifiedColumnIDInterface {
 		public SimplifiedColumnConfig getColumnConfig();
 	}
+	
+	public static class UseFulColumnDefMethods
+	{
+		public static int getHorizontalAlignment(Integer horizontalAlignment, Class<?> columnClass)
+		{
+			if (horizontalAlignment != null) return horizontalAlignment;
+			if (columnClass == null        ) return SwingConstants.LEFT;
+			if (columnClass == String.class) return SwingConstants.LEFT;
+			if (Number.class.isAssignableFrom(columnClass)) return SwingConstants.RIGHT;
+			return SwingConstants.LEFT;
+		}
+		
+		public static <T> Function<Object, String> createToString(Class<T> columnClass, Function<T, String> toString)
+		{
+			if (toString==null)
+				return null;
+			return obj -> {
+				if (columnClass!=null && columnClass.isInstance(obj))
+					return toString.apply(columnClass.cast(obj));
+				if (obj!=null)
+					return obj.toString();
+				return null;
+			};
+		}
+	}
 
 	public static abstract class SimplifiedTableModel<ColumnID extends SimplifiedColumnIDInterface> implements TableModel {
 		
@@ -1289,6 +1314,77 @@ public class Tables {
 		@Override public void firePropertyChange(String propertyName, double oldValue, double newValue) {}
 	}
 	
+	public static abstract class GraphicRendererComponent<ValueType> extends JLabel {
+		private static final long serialVersionUID = 4760520828291495547L;
+		
+		private final RendererConfigurator rendConf;
+		private final Class<ValueType> valueClass;
+		
+		public GraphicRendererComponent(Class<ValueType> valueClass) {
+			this.valueClass = Objects.requireNonNull(valueClass);
+			rendConf = RendererConfigurator.create(this);
+		}
+		public GraphicRendererComponent(Class<ValueType> valueClass, int prefWidth, int prefHeight) {
+			this(valueClass);
+			setPreferredSize(new Dimension(prefWidth, prefHeight));
+		}
+		public void setDefaultPreferredSize() {
+			setPreferredSize(new Dimension(15, 15));
+		}
+		
+		public void configureAsTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus) {
+			configureAsTableCellRendererComponent(table, value, isSelected, hasFocus, null, null);
+		}
+		public void configureAsTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, Supplier<Color> getCustomBackground, Supplier<Color> getCustomForeground) {
+			rendConf.configureAsTableCRC(table, isSelected, hasFocus, getCustomForeground, getCustomBackground);
+			setValue(valueClass.isInstance(value) ? valueClass.cast(value) : null, table, null, null, isSelected, hasFocus);
+		}
+		
+		public void configureAsListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean hasFocus) {
+			configureAsListCellRendererComponent(list, value, index, isSelected, hasFocus, null, null);
+		}
+		public void configureAsListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean hasFocus, Supplier<Color> getCustomBackground, Supplier<Color> getCustomForeground) {
+			rendConf.configureAsListCRC(list, index, isSelected, hasFocus, getCustomForeground, getCustomBackground);
+			setValue(valueClass.isInstance(value) ? valueClass.cast(value) : null, null, list, index, isSelected, hasFocus);
+		}
+		
+		@Override
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			
+			int width = getWidth();
+			int height = getHeight();
+			
+		//	g.setColor(Color.GRAY);
+		//	g.drawRect(2, 2, width-5, height-5);
+		//	g.setColor(color);
+		//	g.fillRect(3, 3, width-6, height-6);
+			paintContent(g, 2, 2, width-4, height-4);
+		}
+		
+		protected abstract void setValue(ValueType value, JTable table, JList<?> list, Integer listIndex, boolean isSelected, boolean hasFocus);
+		protected abstract void paintContent(Graphics g, int x, int y, int width, int height);
+		
+		@Override public void revalidate() {}
+		@Override public void invalidate() {}
+		@Override public void validate() {}
+		@Override public void repaint(long tm, int x, int y, int width, int height) {}
+		@Override public void repaint(Rectangle r) {}
+		@Override public void repaint() {}
+		@Override public void repaint(long tm) {}
+		@Override public void repaint(int x, int y, int width, int height) {}
+
+		@Override public void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {}
+		@Override public void firePropertyChange(String propertyName, int oldValue, int newValue) {}
+		@Override public void firePropertyChange(String propertyName, char oldValue, char newValue) {}
+		@Override protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {}
+		@Override public void firePropertyChange(String propertyName, byte oldValue, byte newValue) {}
+		@Override public void firePropertyChange(String propertyName, short oldValue, short newValue) {}
+		@Override public void firePropertyChange(String propertyName, long oldValue, long newValue) {}
+		@Override public void firePropertyChange(String propertyName, float oldValue, float newValue) {}
+		@Override public void firePropertyChange(String propertyName, double oldValue, double newValue) {}
+	}
+	
 	public static class ColorRendererComponent extends JLabel {
 		private static final long serialVersionUID = 2251987143991276551L;
 		private final RendererConfigurator rendConf;
@@ -1298,6 +1394,13 @@ public class Tables {
 		
 		public ColorRendererComponent() {
 			rendConf = RendererConfigurator.create(this);
+		}
+		public ColorRendererComponent(int prefWidth, int prefHeight) {
+			this();
+			setPreferredSize(new Dimension(prefWidth, prefHeight));
+		}
+		public void setDefaultPreferredSize() {
+			setPreferredSize(new Dimension(15, 15));
 		}
 		
 		public void configureAsTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, Supplier<String> getSurrogateText) {
