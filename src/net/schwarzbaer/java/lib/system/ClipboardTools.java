@@ -16,6 +16,24 @@ import java.io.StringWriter;
 
 public class ClipboardTools {
 
+	private static Clipboard getSystemClipboard()
+	{
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		if (toolkit==null) return null;
+		return toolkit.getSystemClipboard();
+	}
+
+	private static Transferable getContents()
+	{
+		Clipboard clipboard = getSystemClipboard();
+		if (clipboard==null) return null;
+		
+		try { return clipboard.getContents(null); }
+		catch (Exception ex) { System.err.printf("Exception: \"%s\"%n", ex.getMessage()); }
+		
+		return null;
+	}
+
 	public static boolean copyToClipBoard(BufferedImage image) {
 		if (image==null) return false;
 		return copyToClipBoard(new TransferableImage(image), null);
@@ -34,9 +52,7 @@ public class ClipboardTools {
 	}
 
 	public static boolean copyToClipBoard(Transferable content, ClipboardOwner owner) {
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		if (toolkit==null) return false;
-		Clipboard clipboard = toolkit.getSystemClipboard();
+		Clipboard clipboard = getSystemClipboard();
 		if (clipboard==null) return false;
 		try { clipboard.setContents(content,null); }
 		catch (IllegalStateException e1) { e1.printStackTrace(); return false; }
@@ -60,8 +76,8 @@ public class ClipboardTools {
 
 	@SuppressWarnings("unused")
 	private static String getStringFromClipBoard_simple() {
-		Clipboard systemClip = Toolkit.getDefaultToolkit().getSystemClipboard();
-		if (systemClip.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
+		Clipboard systemClip = getSystemClipboard();
+		if (systemClip!=null && systemClip.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
 			try {
 				Object obj = systemClip.getData(DataFlavor.stringFlavor);
 				if ( (obj!=null) && (obj instanceof String))
@@ -73,12 +89,9 @@ public class ClipboardTools {
 		return null;
 	}
 
-	public static String getStringFromClipBoard(boolean showOtherDataFlavors) {
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		if (toolkit==null) return null;
-		Clipboard clipboard = toolkit.getSystemClipboard();
-		if (clipboard==null) return null;
-		Transferable transferable = clipboard.getContents(null);
+	public static String getStringFromClipBoard(boolean showOtherDataFlavors)
+	{
+		Transferable transferable = getContents();
 		if (transferable==null) return null;
 		
 		DataFlavor textFlavor = new DataFlavor(String.class, "text/plain; class=<java.lang.String>");
@@ -116,19 +129,15 @@ public class ClipboardTools {
 		return "[\r\n"+str+"\r\n]";
 	}
 	
+	public static boolean isImageInClipBoard()
+	{
+		Transferable content = getContents();
+		return content!=null && content.isDataFlavorSupported(DataFlavor.imageFlavor);
+	}
+	
 	public static BufferedImage getImageFromClipBoard()
 	{
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		if (toolkit==null) return null;
-		Clipboard clipboard = toolkit.getSystemClipboard();
-		if (clipboard==null) return null;
-		
-		Transferable content = null;
-		try { content = clipboard.getContents(null); }
-		catch (Exception ex) {
-			System.err.printf("Exception: \"%s\"%n", ex.getMessage());
-			return null;
-		}
+		Transferable content = getContents();
 		
 		if (content!=null && content.isDataFlavorSupported(DataFlavor.imageFlavor)) {
 			try {
