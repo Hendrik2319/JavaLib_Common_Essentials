@@ -1834,38 +1834,24 @@ public class Tables {
 		private ValueType[] dataArr;
 		private Vector<ValueType> dataVec;
 
-		public SimpleGetValueTableModel(ColumnIDType[] columns)
+		public SimpleGetValueTableModel(ColumnIDType[] columns                        ) { this(columns, null, null); }
+		public SimpleGetValueTableModel(ColumnIDType[] columns, ValueType[]       data) { this(columns, data, null); }
+		public SimpleGetValueTableModel(ColumnIDType[] columns, Vector<ValueType> data) { this(columns, null, data); }
+		
+		private SimpleGetValueTableModel(ColumnIDType[] columns, ValueType[] dataArr, Vector<ValueType> dataVec)
 		{
 			super(columns);
-			this.dataArr = null;
-			this.dataVec = null;
+			this.dataArr = dataArr;
+			this.dataVec = dataVec;
 		}
 
-		public SimpleGetValueTableModel(ColumnIDType[] columns, ValueType[] data)
-		{
-			super(columns);
-			this.dataArr = data;
-			this.dataVec = null;
-		}
+		public void setData(ValueType[]       data) { setData(data, null); }
+		public void setData(Vector<ValueType> data) { setData(null, data); }
 
-		public SimpleGetValueTableModel(ColumnIDType[] columns, Vector<ValueType> data)
+		private void setData(ValueType[] dataArr, Vector<ValueType> dataVec)
 		{
-			super(columns);
-			this.dataArr = null;
-			this.dataVec = data;
-		}
-
-		public void setData(ValueType[] data)
-		{
-			this.dataArr = data;
-			this.dataVec = null;
-			fireTableUpdate(); 
-		}
-
-		public void setData(Vector<ValueType> data)
-		{
-			this.dataArr = null;
-			this.dataVec = data;
+			this.dataArr = dataArr;
+			this.dataVec = dataVec;
 			fireTableUpdate(); 
 		}
 
@@ -1874,7 +1860,18 @@ public class Tables {
 		
 		@Override
 		public int getRowCount() { return dataVec != null ? dataVec.size() : dataArr != null ? dataArr.length : 0; }
-
+		
+		public int getRowIndex(ValueType row)
+		{
+			if (dataVec!=null)
+				return dataVec.indexOf(row);
+			if (dataArr!=null)
+				for (int i=0; i<dataArr.length; i++)
+					if (dataArr[i]==row)
+						return i;
+			return -1;
+		}
+		
 		@Override
 		public ValueType getRow(int rowIndex)
 		{
