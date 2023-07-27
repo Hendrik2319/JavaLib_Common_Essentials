@@ -70,7 +70,7 @@ public class ClipboardTools {
 		}
 
 		@Override public DataFlavor[] getTransferDataFlavors() { return new DataFlavor[] { DataFlavor.imageFlavor }; }
-		@Override public boolean isDataFlavorSupported(DataFlavor flavor) { return DataFlavor.imageFlavor.equals(flavor); }
+		@Override public boolean isDataFlavorSupported(DataFlavor flavor) { return flavor!=null && flavor.getRepresentationClass().isInstance(image); }
 		
 	}
 
