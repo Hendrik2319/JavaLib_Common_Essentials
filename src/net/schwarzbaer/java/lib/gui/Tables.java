@@ -999,35 +999,45 @@ public class Tables {
 	
 	public static class ComboboxCellEditor<T> extends AbstractCellEditor implements TableCellEditor {
 		private static final long serialVersionUID = 8936989376730045132L;
+		
+		public interface CellBasedValueSource<T> {
+			Vector<T> get(int rowM, int columnM);
+		}
 
 		private Object currentValue;
 		protected Vector<T> valueVector;
 		protected T[] valueArray;
 		private ListCellRenderer<? super T> renderer;
-		private Supplier<Vector<T>> volatileValueSource;
+		private final Supplier<Vector<T>> volatileValueSource;
+		private final CellBasedValueSource<T> cellBasedValueSource;
 		
+		public ComboboxCellEditor(CellBasedValueSource<T> cellBasedValueSource) {
+			this(null,null,null,cellBasedValueSource);
+			if (cellBasedValueSource==null) throw new IllegalArgumentException("Parameter \"cellBasedValueSource\" must not be null.");
+		}
 		public ComboboxCellEditor(Supplier<Vector<T>> volatileValueSource) {
-			this(null,null,volatileValueSource);
+			this(null,null,volatileValueSource,null);
 			if (volatileValueSource==null) throw new IllegalArgumentException("Parameter \"volatileValueSource\" must not be null.");
 		}
 		public ComboboxCellEditor(Vector<T> values) {
-			this(values,null,null);
+			this(values,null,null,null);
 			if (values==null) throw new IllegalArgumentException("Parameter \"values\" must not be null.");
 		}
 		public ComboboxCellEditor(T[] values) {
-			this(null,values,null);
+			this(null,values,null,null);
 			if (values==null) throw new IllegalArgumentException("Parameter \"values\" must not be null.");
 		}
-		private ComboboxCellEditor(Vector<T> valueVector, T[] valueArray, Supplier<Vector<T>> volatileValueSource) {
+		private ComboboxCellEditor(Vector<T> valueVector, T[] valueArray, Supplier<Vector<T>> volatileValueSource, CellBasedValueSource<T> cellBasedValueSource) {
 			this.valueVector = valueVector;
 			this.valueArray = valueArray;
 			this.volatileValueSource = volatileValueSource;
-			if (valueVector==null && valueArray==null && volatileValueSource==null) throw new IllegalArgumentException();
+			this.cellBasedValueSource = cellBasedValueSource;
 			this.currentValue = null;
 			this.renderer = null;
 		}
 		public void addValue(T newValue) {
-			if (volatileValueSource!=null) throw new UnsupportedOperationException();
+			if (volatileValueSource !=null) throw new UnsupportedOperationException();
+			if (cellBasedValueSource!=null) throw new UnsupportedOperationException();
 			stopCellEditing();
 			if (valueArray!=null) {
 				valueArray = Arrays.copyOf(valueArray, valueArray.length+1);
@@ -1038,14 +1048,16 @@ public class Tables {
 		}
 
 		public void setValues(T[] newValues) {
-			if (volatileValueSource!=null) throw new UnsupportedOperationException();
+			if (volatileValueSource !=null) throw new UnsupportedOperationException();
+			if (cellBasedValueSource!=null) throw new UnsupportedOperationException();
 			stopCellEditing();
 			valueArray = newValues;
 			valueVector = null;
 		}
 
 		public void setValues(Vector<T> newValues) {
-			if (volatileValueSource!=null) throw new UnsupportedOperationException();
+			if (volatileValueSource !=null) throw new UnsupportedOperationException();
+			if (cellBasedValueSource!=null) throw new UnsupportedOperationException();
 			stopCellEditing();
 			valueArray = null;
 			valueVector = newValues;
@@ -1075,10 +1087,11 @@ public class Tables {
 			updateAtEditStart(rowM,columnM);
 			
 			JComboBox<T> cmbbx;
-			if      (valueArray         !=null) cmbbx = new JComboBox<T>(valueArray);
-			else if (valueVector        !=null) cmbbx = new JComboBox<T>(valueVector);
-			else if (volatileValueSource!=null) cmbbx = new JComboBox<T>(volatileValueSource.get());
-			else                        cmbbx = null;
+			if      (valueArray          !=null) cmbbx = new JComboBox<T>(valueArray);
+			else if (valueVector         !=null) cmbbx = new JComboBox<T>(valueVector);
+			else if (volatileValueSource !=null) cmbbx = new JComboBox<T>(volatileValueSource.get());
+			else if (cellBasedValueSource!=null) cmbbx = new JComboBox<T>(cellBasedValueSource.get(rowM, columnM));
+			else                                 cmbbx = null;
 			
 			if (renderer!=null) cmbbx.setRenderer(renderer);
 			cmbbx.setSelectedItem(currentValue);
