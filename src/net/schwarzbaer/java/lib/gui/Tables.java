@@ -1140,18 +1140,26 @@ public class Tables {
 		
 		private final LabelRendererComponent comp;
 		private final Function<Object, String> converter;
+		private Function<Object, Color> colorizer;
 		
 		public NonStringRenderer(Function<Object,String> converter) {
 			this.converter = converter;
 			this.comp = new LabelRendererComponent();
 			comp.setPreferredSize(new Dimension(1,16));
+			this.colorizer = null;
+		}
+		
+		public void setBackgroundColorizer(Function<Object,Color> colorizer) {
+			this.colorizer = colorizer;
+			
 		}
 		
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			String valueStr = converter.apply(value);
 			if (valueStr==null) valueStr = "";
-			comp.configureAsTableCellRendererComponent(table, null, valueStr, isSelected, hasFocus);
+			Supplier<Color> getCustomBackground = colorizer == null ? null : ()->colorizer.apply(value);
+			comp.configureAsTableCellRendererComponent(table, null, valueStr, isSelected, hasFocus, getCustomBackground, null);
 			return comp;
 		}
 
@@ -1159,7 +1167,8 @@ public class Tables {
 		public Component getListCellRendererComponent(JList<? extends T> list, T value, int index, boolean isSelected, boolean hasFocus) {
 			String valueStr = converter.apply(value);
 			if (valueStr==null) valueStr = "";
-			comp.configureAsListCellRendererComponent(list, null, valueStr, index, isSelected, hasFocus);
+			Supplier<Color> getCustomBackground = colorizer == null ? null : ()->colorizer.apply(value);
+			comp.configureAsListCellRendererComponent(list, null, valueStr, index, isSelected, hasFocus, getCustomBackground, null);
 			return comp;
 		}
 	}
