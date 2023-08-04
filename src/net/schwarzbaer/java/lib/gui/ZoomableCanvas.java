@@ -351,12 +351,17 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 		}
 		
 		public void setVertAxisDownPositive(boolean vertAxisIsDownPositive) {
-			vAxisSign = !mapIsSpherical && vertAxisIsDownPositive ? 1 : -1;
+			if (mapIsSpherical) throw new UnsupportedOperationException();
+			vAxisSign = vertAxisIsDownPositive ? 1 : -1;
 		}
 		
 		public void setHorizAxisRightPositive(boolean horizAxisIsRightPositive) {
-			hAxisSign = !mapIsSpherical && horizAxisIsRightPositive ? 1 : -1;
+			if (mapIsSpherical) throw new UnsupportedOperationException();
+			hAxisSign = horizAxisIsRightPositive ? 1 : -1;
 		}
+		
+		public boolean isVertAxisDownPositive  () { return vAxisSign > 0; }
+		public boolean isHorizAxisRightPositive() { return hAxisSign > 0; }
 		
 		protected void clearValues() {
 			center = null;
