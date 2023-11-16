@@ -61,8 +61,14 @@ public class DateTimeFormatter {
 	}
 	
 	public  static String getDurationStr_ms(long duration_ms) { return getDurationStr(duration_ms/1000, duration_ms % 1000); }
+	public  static String getDurationStr(double duration_sec) {
+		long duration_sec2 = Math.round(Math.floor(duration_sec));
+		long duration_ms = Math.round(Math.floor((duration_sec-Math.floor(duration_sec))*1000));
+		return getDurationStr( duration_sec2, duration_ms==0 ? null : duration_ms );
+	}
 	public  static String getDurationStr(long duration_sec) { return getDurationStr(duration_sec, null); }
 	private static String getDurationStr(long duration_sec, Long duration_ms) {
+		if (duration_sec<0) throw new IllegalArgumentException("DateTimeFormatter.getDurationStr( duration_sec ): duration_sec must not be negatiive");
 		long s =  duration_sec      %60;
 		long m = (duration_sec/60  )%60;
 		long h =  duration_sec/3600;

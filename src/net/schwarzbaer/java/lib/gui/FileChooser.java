@@ -19,11 +19,15 @@ public class FileChooser extends JFileChooser {
 	
 	public FileChooser(String fileTypeName, String fileTypeExt) {
 		super("./");
-		this.fileTypeExt = fileTypeExt;
 		selectedFile = null;
-		setFileFilter( new FileNameExtensionFilter(fileTypeName+" (*."+this.fileTypeExt+")",this.fileTypeExt));
+		setFileType(fileTypeName, fileTypeExt);
 		setFileSelectionMode(JFileChooser.FILES_ONLY);
 		setMultiSelectionEnabled(false);
+	}
+	public void setFileType(String fileTypeName, String fileTypeExt)
+	{
+		this.fileTypeExt = fileTypeExt;
+		setFileFilter( new FileNameExtensionFilter(fileTypeName+" (*."+this.fileTypeExt+")",this.fileTypeExt));
 	}
 	public void setAddCorrectExt          (boolean b) { addCorrectExt             =b; };
 	public void disableOverwriteWaring    (boolean b) { disableOverwriteWaring    =b; };
