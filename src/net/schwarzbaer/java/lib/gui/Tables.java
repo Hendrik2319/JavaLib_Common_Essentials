@@ -63,6 +63,15 @@ import javax.swing.table.TableModel;
 
 public class Tables {
 	
+	public static int[] convertRowIndexesToModel(JTable table, int[] rowsV)
+	{
+		return Arrays
+			.stream(rowsV)
+			.map   (rowV -> rowV<0 ? -1 : table.convertRowIndexToModel(rowV))
+			.filter(rowM -> rowM>=0)
+			.toArray();
+	}
+
 	public static class RowHeaderView extends Component
 	{
 		private static final long serialVersionUID = -787545909665602974L;
