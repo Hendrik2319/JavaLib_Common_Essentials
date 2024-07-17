@@ -1819,9 +1819,12 @@ public class Tables {
 	public static abstract class AbstractGetValueTableModel<ValueType, ColumnIDType extends AbstractGetValueTableModel.ColumnIDTypeInt<ValueType>>
 		extends Tables.SimplifiedTableModel<ColumnIDType>
 	{
+		public record ExtraColumnValue<ValueType>(String label, Function<ValueType, ?> getGetValue) {}
+		
 		public interface ColumnIDTypeInt<ValueType> extends Tables.SimplifiedColumnIDInterface
 		{
 			Function<ValueType, ?> getGetValue();
+			default List<ExtraColumnValue<ValueType>> getExtraColumnValues() { return null; };
 		}
 		
 		public static <BaseValueType,SubValueType,ValueType> Function<BaseValueType,ValueType> fromSubValue(Function<BaseValueType,SubValueType> getSubValue, Function<SubValueType,ValueType> getValue)
@@ -1855,6 +1858,102 @@ public class Tables {
 		protected Object getValueAt(int rowIndex, int columnIndex, ColumnIDType columnID, ValueType row)
 		{
 			throw new IllegalStateException(String.format("No GetValue specified for ColumnID \"%s\"", columnID));
+		}
+		
+		public String getTableContentAsString(GetValueTableModelOutputter.OutputType outputType, boolean columnsInViewOrder, boolean rowsInViewOrder)
+		{
+			return new GetValueTableModelOutputter<>(table, this)
+					.getTableContentAsString(outputType, columnsInViewOrder, rowsInViewOrder);
+		}
+	}
+	
+	public static class GetValueTableModelOutputter<ValueType, ColumnIDType extends AbstractGetValueTableModel.ColumnIDTypeInt<ValueType>>
+	{
+		public enum OutputType
+		{
+			TabSeparated("\t"), SemicolonSeparated(";"),;
+
+			private final String separator;
+
+			OutputType(String separator)
+			{
+				this.separator = separator;
+			}
+		}
+
+		private final JTable table;
+		private final AbstractGetValueTableModel<ValueType, ColumnIDType> tableModel;
+
+		public GetValueTableModelOutputter(JTable table, AbstractGetValueTableModel<ValueType, ColumnIDType> tableModel)
+		{
+			this.table = table;
+			this.tableModel = tableModel;
+		}
+
+		private static String getValueStr(String value)
+		{
+			return value == null ? "" : "\"%s\"".formatted(value.replace("\\", "\\\\").replace("\"", "\\\""));
+		}
+
+		private static String getValueStr(Object value)
+		{
+			if (value instanceof String str)
+				return getValueStr(str);
+
+			return value == null ? "" : value.toString();
+		}
+
+		public String getTableContentAsString(OutputType outputType, boolean columnsInViewOrder, boolean rowsInViewOrder)
+		{
+			outputType = Objects.requireNonNull(outputType);
+			StringBuilder sb = new StringBuilder();
+
+			final int rowCount = tableModel.getRowCount();
+			final int columnCount = tableModel.getColumnCount();
+			for (int r0 = -1; r0 < rowCount; r0++)
+			{
+				final int r = r0 < 0 || !rowsInViewOrder ? r0 : table.convertRowIndexToModel(r0);
+				final ValueType row = r < 0 ? null : tableModel.getRow(r);
+				if (r >= 0 && row == null)
+					continue; // skip empty rows
+
+				boolean isFirstColumn = true;
+				for (int c0 = 0; c0 < columnCount; c0++)
+				{
+					final int c = !columnsInViewOrder ? c0 : table.convertColumnIndexToModel(c0);
+					ColumnIDType columnID = c < 0 ? null : tableModel.getColumnID(c);
+					if (columnID == null)
+						continue;
+
+					if (!isFirstColumn)
+						sb.append(outputType.separator);
+
+					SimplifiedColumnConfig columnConfig = columnID.getColumnConfig();
+					List<AbstractGetValueTableModel.ExtraColumnValue<ValueType>> extraColumnValues = columnID.getExtraColumnValues();
+
+					if (row == null)
+					{ // header
+						sb.append(getValueStr(columnConfig.name));
+						if (extraColumnValues != null)
+							for (AbstractGetValueTableModel.ExtraColumnValue<ValueType> ecv : extraColumnValues)
+								sb.append(outputType.separator).append(getValueStr(ecv.label));
+					} else
+					{ // normal row
+						sb.append(getValueStr(tableModel.getValueAt(r, c, columnID)));
+						//Function<ValueType, ?> getValueFcn = columnID.getGetValue();
+						//if (getValueFcn != null)
+						//	sb.append(getValueStr(getValueFcn.apply(row)));
+						if (extraColumnValues != null)
+							for (AbstractGetValueTableModel.ExtraColumnValue<ValueType> ecv : extraColumnValues)
+								sb.append(outputType.separator).append(getValueStr(ecv.getGetValue == null ? null : ecv.getGetValue.apply(row)));
+					}
+
+					isFirstColumn = false;
+				}
+				sb.append("\r\n");
+			}
+
+			return sb.toString();
 		}
 	}
 	
