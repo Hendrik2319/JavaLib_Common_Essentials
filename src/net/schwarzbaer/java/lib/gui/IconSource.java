@@ -90,11 +90,11 @@ public class IconSource<E extends Enum<E>> {
 	}
 	
 	public CachedIcons<E> cacheIcons(E[] keys) {
-		return new CachedIcons<E>(this,keys);
+		return new CachedIcons<>(this,keys);
 	}
 	
 	public CachedImages<E> cacheImages(E[] keys) {
-		return new CachedImages<E>(this,keys);
+		return new CachedImages<>(this,keys);
 	}
 	
 	public CachedIndexedIcons cacheIcons(int numberOfIcons) {
@@ -218,25 +218,25 @@ public class IconSource<E extends Enum<E>> {
 	}
 
 	public static <E extends Enum<E>> CachedIcons<E> createCachedIcons(int iconWidth, int iconHeight, String resourcePath, E[] keys) {
-		IconSource<E> source = new IconSource<E>(iconWidth,iconHeight);
+		IconSource<E> source = new IconSource<>(iconWidth,iconHeight);
 		source.readIconsFromResource(resourcePath);
 		return source.cacheIcons(keys);
 	}
 
 	public static <E extends Enum<E>> CachedIcons<E> createCachedIcons(int iconWidth, int iconHeight, int columnCount, String resourcePath, E[] keys) {
-		IconSource<E> source = new IconSource<E>(iconWidth,iconHeight,columnCount);
+		IconSource<E> source = new IconSource<>(iconWidth,iconHeight,columnCount);
 		source.readIconsFromResource(resourcePath);
 		return source.cacheIcons(keys);
 	}
 
 	public static <E extends Enum<E>> CachedIcons<E> createCachedIcons(int iconWidth, int iconHeight, String resourceLabel, Supplier<InputStream> getInputStream, E[] keys) {
-		IconSource<E> source = new IconSource<E>(iconWidth,iconHeight);
+		IconSource<E> source = new IconSource<>(iconWidth,iconHeight);
 		source.readIconsFromResource(resourceLabel, getInputStream);
 		return source.cacheIcons(keys);
 	}
 
 	public static <E extends Enum<E>> CachedIcons<E> createCachedIcons(int iconWidth, int iconHeight, int columnCount, String resourceLabel, Supplier<InputStream> getInputStream, E[] keys) {
-		IconSource<E> source = new IconSource<E>(iconWidth,iconHeight,columnCount);
+		IconSource<E> source = new IconSource<>(iconWidth,iconHeight,columnCount);
 		source.readIconsFromResource(resourceLabel, getInputStream);
 		return source.cacheIcons(keys);
 	}
@@ -264,7 +264,7 @@ public class IconSource<E extends Enum<E>> {
 	public static class CachedImages<E extends Enum<E>> {
 		private EnumMap<E, BufferedImage> enumImageCache;
 		public CachedImages(IconSource<E> iconSource, E[] keys) {
-			enumImageCache = new EnumMap<E,BufferedImage>(keys[0].getDeclaringClass());
+			enumImageCache = new EnumMap<>(keys[0].getDeclaringClass());
 			for (E key:keys) enumImageCache.put(key, iconSource.getImage(key));
 		}
 		public BufferedImage getCachedImage(E key) { return enumImageCache.get(key); }
@@ -274,7 +274,7 @@ public class IconSource<E extends Enum<E>> {
 	public static class CachedIcons<E extends Enum<E>> {
 		private EnumMap<E, Icon> enumIconCache;
 		public CachedIcons(IconSource<E> iconSource, E[] keys) {
-			enumIconCache = new EnumMap<E,Icon>(keys[0].getDeclaringClass());
+			enumIconCache = new EnumMap<>(keys[0].getDeclaringClass());
 			for (E key:keys) enumIconCache.put(key, iconSource.getIcon(key));
 		}
 		public Icon getCachedIcon(E key) { return enumIconCache.get(key); }

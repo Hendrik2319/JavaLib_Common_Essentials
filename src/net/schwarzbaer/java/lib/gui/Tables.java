@@ -215,7 +215,7 @@ public class Tables {
 
 		public SimplifiedRowSorter(SimplifiedTableModel<?> model) {
 			this.model = model;
-			this.keys = new LinkedList<RowSorter.SortKey>();
+			this.keys = new LinkedList<>();
 			this.modelRowIndexes = null;
 			this.viewRowIndexes = null;
 			this.listeners = new Vector<>();
@@ -1077,7 +1077,7 @@ public class Tables {
 		}
 
 		public void setRenderer(Function<Object,String> converter) {
-			this.renderer = new NonStringRenderer<T>(converter);
+			this.renderer = new NonStringRenderer<>(converter);
 		}
 		
 		@Override
@@ -1096,10 +1096,10 @@ public class Tables {
 			updateAtEditStart(rowM,columnM);
 			
 			JComboBox<T> cmbbx;
-			if      (valueArray          !=null) cmbbx = new JComboBox<T>(valueArray);
-			else if (valueVector         !=null) cmbbx = new JComboBox<T>(valueVector);
-			else if (volatileValueSource !=null) cmbbx = new JComboBox<T>(volatileValueSource.get());
-			else if (cellBasedValueSource!=null) cmbbx = new JComboBox<T>(cellBasedValueSource.get(rowM, columnM));
+			if      (valueArray          !=null) cmbbx = new JComboBox<>(valueArray);
+			else if (valueVector         !=null) cmbbx = new JComboBox<>(valueVector);
+			else if (volatileValueSource !=null) cmbbx = new JComboBox<>(volatileValueSource.get());
+			else if (cellBasedValueSource!=null) cmbbx = new JComboBox<>(cellBasedValueSource.get(rowM, columnM));
 			else                                 cmbbx = null;
 			
 			if (renderer!=null) cmbbx.setRenderer(renderer);

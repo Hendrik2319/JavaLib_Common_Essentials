@@ -14,11 +14,11 @@ public class Disabler<ActionCommands> {
 	private HashMap<ActionCommands, Vector<JComponent>> map;
 
 	public Disabler() {
-		map = new HashMap<ActionCommands,Vector<JComponent>>();
+		map = new HashMap<>();
 	}
 	
 	public void setCareFor(ActionCommands actionCommand) {
-		map.put(actionCommand,new Vector<JComponent>());
+		map.put(actionCommand,new Vector<>());
 	}
 
 	public void setCareFor(ActionCommands[] values) {

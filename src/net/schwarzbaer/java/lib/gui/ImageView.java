@@ -87,7 +87,7 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 		contextMenu = new ImageViewContextMenu(this,interpolationLevel!=null, withGroupedContexMenu);
 		contextMenu.addTo(this);
 		
-		drawExtensions = new Vector<DrawExtension>();
+		drawExtensions = new Vector<>();
 	}
 	
 	public ContextMenu getContextMenu() {

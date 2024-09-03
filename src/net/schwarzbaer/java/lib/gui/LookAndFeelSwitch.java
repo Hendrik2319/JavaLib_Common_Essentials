@@ -38,7 +38,7 @@ public class LookAndFeelSwitch<ValueKey extends Enum<ValueKey>>
 		uiTreeRoot = null;
 		this.settings = settings;
 		this.storageKey = storageKey;
-		installedLookAndFeels = new Vector<LAFInfo>();
+		installedLookAndFeels = new Vector<>();
 		for (LookAndFeelInfo laf : UIManager.getInstalledLookAndFeels())
 			installedLookAndFeels.add(new LAFInfo(laf.getName(), laf.getClassName()));
 		
