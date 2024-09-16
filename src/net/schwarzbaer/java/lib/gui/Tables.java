@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Vector;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -2015,6 +2016,31 @@ public class Tables {
 				return dataArr[ rowIndex ];
 			}
 			return null;
+		}
+	}
+	
+	public static abstract class SimpleGetValueTableModel2<ThisTableModelType, ValueType, ColumnIDType extends SimpleGetValueTableModel2.ColumnIDTypeInt2<ThisTableModelType,ValueType>>
+		extends SimpleGetValueTableModel<ValueType, ColumnIDType>
+	{
+		public interface ColumnIDTypeInt2<TableModelType, ValueType> extends ColumnIDTypeInt<ValueType>
+		{
+			BiFunction<TableModelType,ValueType, ?> getGetValueM();
+		}
+
+		public SimpleGetValueTableModel2(ColumnIDType[] columns) { super(columns); }
+		public SimpleGetValueTableModel2(ColumnIDType[] columns, ValueType[] data) { super(columns, data); }
+		public SimpleGetValueTableModel2(ColumnIDType[] columns, Vector<ValueType> data) { super(columns, data); }
+		
+		protected abstract ThisTableModelType getThis();
+		
+		@Override
+		protected Object getValueAt(int rowIndex, int columnIndex, ColumnIDType columnID, ValueType row)
+		{
+			BiFunction<ThisTableModelType, ValueType, ?> getValueM = columnID.getGetValueM();
+			if (getValueM!=null)
+				return getValueM.apply(getThis(), row);
+			
+			return super.getValueAt(rowIndex, columnIndex, columnID, row);
 		}
 	}
 	
