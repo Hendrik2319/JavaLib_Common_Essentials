@@ -1102,13 +1102,15 @@ public class Tables {
 			else if (cellBasedValueSource!=null) cmbbx = new JComboBox<>(cellBasedValueSource.get(rowM, columnM));
 			else                                 cmbbx = null;
 			
-			if (renderer!=null) cmbbx.setRenderer(renderer);
-			cmbbx.setSelectedItem(currentValue);
-			cmbbx.setBackground(isSelected?table.getSelectionBackground():table.getBackground());
-			cmbbx.addActionListener(e->{
-				currentValue = cmbbx.getSelectedItem();
-				fireEditingStopped();
-			});
+			if (cmbbx!=null) {
+				if (renderer!=null) cmbbx.setRenderer(renderer);
+				cmbbx.setSelectedItem(currentValue);
+				cmbbx.setBackground(isSelected?table.getSelectionBackground():table.getBackground());
+				cmbbx.addActionListener(e->{
+					currentValue = cmbbx.getSelectedItem();
+					fireEditingStopped();
+				});
+			}
 			
 			return cmbbx;
 		}
