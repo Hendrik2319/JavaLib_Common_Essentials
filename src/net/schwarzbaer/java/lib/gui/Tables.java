@@ -25,6 +25,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -1958,8 +1959,8 @@ public class Tables {
 		extends AbstractGetValueTableModel<ValueType, ColumnIDType>
 		implements Tables.StandardTableModelExtension<ValueType>
 	{
-		private ValueType[] dataArr;
-		private Vector<ValueType> dataVec;
+		protected ValueType[] dataArr;
+		protected Vector<ValueType> dataVec;
 
 		public SimpleGetValueTableModel(ColumnIDType[] columns                        ) { this(columns, null, null); }
 		public SimpleGetValueTableModel(ColumnIDType[] columns, ValueType[]       data) { this(columns, data, null); }
@@ -2078,6 +2079,51 @@ public class Tables {
 			});
 			
 			addTo(table);
+		}
+	}
+	
+	public static class ArrayReorderer<V>
+	{
+		private final Vector<V> vec;
+
+		public ArrayReorderer(V[] arr)
+		{
+			vec = new Vector<>( Arrays.asList(arr) );
+		}
+		
+		public ArrayReorderer<V> moveAfter(V value, V posValue)
+		{
+			if (value == posValue)
+				return this;
+			
+			if (!vec.contains(posValue))
+				return this;
+			
+			int pos = vec.indexOf(value);
+			if (pos>=0)
+				vec.remove(pos);
+			
+			pos = vec.indexOf(posValue);
+			if (pos>=0)
+				vec.insertElementAt(value, pos+1);
+			
+			return this;
+		}
+		
+		public ArrayReorderer<V> moveToFirst(V value)
+		{
+			int pos = vec.indexOf(value);
+			if (pos>=0)
+			{
+				vec.remove(pos);
+				vec.insertElementAt(value, 0);
+			}
+			return this;
+		}
+
+		public V[] toArray(IntFunction<V[]> generator)
+		{
+			return vec.toArray(generator);
 		}
 	}
 }
