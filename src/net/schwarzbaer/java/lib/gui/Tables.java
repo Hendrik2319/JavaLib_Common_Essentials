@@ -438,13 +438,13 @@ public class Tables {
 	}
 
 	public static class SimplifiedColumnConfig {
-		public String name;
-		public int minWidth;
-		public int maxWidth;
-		public int prefWidth;
-		public int currentWidth;
-		public Class<?> columnClass;
-		public boolean hasSpecialSorting;
+		public final String name;
+		public final int minWidth;
+		public final int maxWidth;
+		public final int prefWidth;
+		public final int currentWidth;
+		public final Class<?> columnClass;
+		public final boolean hasSpecialSorting;
 		
 		public SimplifiedColumnConfig() {
 			this("",String.class,-1,-1,-1,-1,false);
@@ -470,6 +470,66 @@ public class Tables {
 			for (SimplifiedColumnConfig conf:arr)
 				if (conf.prefWidth>0) sum += conf.prefWidth;
 			return sum;
+		}
+	}
+	
+	public static class SimplifiedColumnConfig2<TableModelType, RowType, CellType> extends SimplifiedColumnConfig
+	{
+		public final int horizontalAlignment;
+		public final Class<CellType> columnClassT;
+		public final Function<RowType, CellType> getValue;
+		public final BiFunction<TableModelType, RowType, CellType> getValueM;
+		public final Function<Object, String> toString;
+		public final Function<RowType, String> toStringR;
+
+		public SimplifiedColumnConfig2(String name, Class<CellType> columnClass, int minWidth, int maxWidth, int prefWidth, int currentWidth, Integer horizontalAlignment)
+		{
+			this(name, columnClass, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment, null, null, null, null);
+		}
+		
+		private SimplifiedColumnConfig2(
+				String name, Class<CellType> columnClassT, int minWidth, int maxWidth, int prefWidth, int currentWidth, Integer horizontalAlignment,
+				Function<RowType, CellType> getValue,
+				BiFunction<TableModelType, RowType, CellType> getValueM,
+				Function<Object, String> toString,
+				Function<RowType, String> toStringR
+		) {
+			super(name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth);
+			this.columnClassT = columnClassT;
+			this.horizontalAlignment = UseFulColumnDefMethods.getHorizontalAlignment(horizontalAlignment, columnClassT);
+			this.getValue  = getValue ;
+			this.getValueM = getValueM;
+			this.toString  = toString ;
+			this.toStringR = toStringR;
+		}
+		
+		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setValFunc(Function<RowType, CellType> getValue)
+		{
+			return new SimplifiedColumnConfig2<>(
+					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
+					getValue, getValueM, toString, toStringR
+			);
+		}
+		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setValFunc(BiFunction<TableModelType, RowType, CellType> getValueM)
+		{
+			return new SimplifiedColumnConfig2<>(
+					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
+					getValue, getValueM, toString, toStringR
+			);
+		}
+		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setToString(Function<CellType,String> toString)
+		{
+			return new SimplifiedColumnConfig2<>(
+					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
+					getValue, getValueM, Tables.UseFulColumnDefMethods.createToString(columnClassT, toString), toStringR
+			);
+		}
+		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setToStringR(Function<RowType,String> toStringR)
+		{
+			return new SimplifiedColumnConfig2<>(
+					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
+					getValue, getValueM, toString, toStringR
+			);
 		}
 	}
 
