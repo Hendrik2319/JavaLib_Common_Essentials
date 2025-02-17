@@ -22,7 +22,7 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 	protected final VS viewState;
 	private Point panStart;
 
-	private Scale mapScale;
+	protected Scale mapScale;
 	private Axes verticalAxes;
 	private Axes horizontalAxes;
 
@@ -683,7 +683,7 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 		}
 	}
 
-	private static class Scale {
+	public static class Scale {
 		
 		private static final int minScaleLength_px = 50;
 	
@@ -712,6 +712,11 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 		void addAdditionalTextSource(Supplier<String[]> additionalTextSource)
 		{
 			this.additionalTextSource = additionalTextSource;
+		}
+
+		public void setUnit(String unit)
+		{
+			this.unit = unit;
 		}
 
 		void setUnitScaling(double unitScaling) {
