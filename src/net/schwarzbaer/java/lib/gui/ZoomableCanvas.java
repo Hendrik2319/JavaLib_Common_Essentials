@@ -230,11 +230,11 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 	public void    addZoomListener(ZoomListener zl) { zoomListeners.   add(zl); }
 	public void removeZoomListener(ZoomListener zl) { zoomListeners.remove(zl); }
 
-	private void updateMapScale() {
+	protected void updateMapScale() {
 		if (mapScale!=null) mapScale.update();
 	}
 
-	private void updateAxes() {
+	protected void updateAxes() {
 		if (viewState.isOk()) {
 			if (verticalAxes  !=null)   verticalAxes.updateTicks();
 			if (horizontalAxes!=null) horizontalAxes.updateTicks();
@@ -526,7 +526,7 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 		public double convertLength_ScreenToAngle_LatY (double length_px) { return length_px / scalePixelPerLength / scaleLengthPerAngleLatY ; }
 	}
 
-	private static class Axes {
+	public static class Axes {
 		private static final int minMinorTickUnitLength_px = 7;
 		private static final int majorTickLength_px = 10;
 		private static final int minorTickLength_px = 4;
@@ -541,22 +541,22 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 		private Color axisColor;
 		private double unitScaling;
 		
-		Axes(ViewState viewState, boolean isVertical, Color axisColor, double unitScaling) {
+		public Axes(ViewState viewState, boolean isVertical, Color axisColor, double unitScaling) {
 			this.viewState = viewState;
 			this.isVertical = isVertical;
 			this.axisColor = axisColor;
 			this.unitScaling = unitScaling;
 		}
 		
-		void setUnitScaling(double unitScaling) {
+		public void setUnitScaling(double unitScaling) {
 			this.unitScaling = unitScaling;
 		}
 
-		private String toString(double angle) {
+		protected String toString(double angle) {
 			return String.format(Locale.ENGLISH, "%1."+precision+"f", angle);
 		}
 		
-		void updateTicks() {
+		public void updateTicks() {
 			double minMinorTickUnitLength_a;
 			if (isVertical) minMinorTickUnitLength_a = viewState.convertLength_ScreenToAngle_LatY (minMinorTickUnitLength_px) * unitScaling;
 			else            minMinorTickUnitLength_a = viewState.convertLength_ScreenToAngle_LongX(minMinorTickUnitLength_px) * unitScaling;
@@ -604,7 +604,7 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 			//System.out.printf("updateTicks(): majorTickUnit_a = %s, minorTickCount = %s, precision = %s%n", majorTickUnit_a, minorTickCount, precision);
 		}
 
-		void drawAxis(Graphics2D g2, int c0, int c1, int width1, boolean labelsRightBottom) {
+		public void drawAxis(Graphics2D g2, int c0, int c1, int width1, boolean labelsRightBottom) {
 			//   isVertical:  c0 = x, c1 = y, width1 = height
 			// ! isVertical:  c0 = y, c1 = x, width1 = width
 			if (width1<0) return; // display area too small
