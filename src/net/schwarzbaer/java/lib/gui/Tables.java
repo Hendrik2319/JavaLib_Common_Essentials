@@ -754,15 +754,20 @@ public class Tables {
 		}
 		
 		public void setColumnWidths(JTable table) {
+			setColumnWidths1(table, SimplifiedTableModel::setColumnWidth);
+		}
+		public void setColumnWidths1(JTable table, BiConsumer<SimplifiedColumnConfig, TableColumn> setColumnWidthFcn) {
+			setColumnWidths2(table, (columnID, column) -> setColumnWidthFcn.accept(columnID.getColumnConfig(), column));
+		}
+		public void setColumnWidths2(JTable table, BiConsumer<ColumnID, TableColumn> setColumnWidthFcn) {
 			TableColumnModel columnModel = table.getColumnModel();
 			for (int i=0; i<columnModel.getColumnCount(); ++i) {
 				ColumnID columnID = getColumnID(table.convertColumnIndexToModel(i));
-				if (columnID!=null) {
-					SimplifiedColumnConfig config = columnID.getColumnConfig();
-					setColumnWidth(columnModel.getColumn(i), config.minWidth, config.maxWidth, config.prefWidth, config.currentWidth);
-				}
+				if (columnID!=null)
+					setColumnWidthFcn.accept(columnID, columnModel.getColumn(i));
 			}
 		}
+
 		public static String getColumnWidthsAsString(JTable table) {
 			TableColumnModel columnModel = table.getColumnModel();
 			if (columnModel==null) return "No ColumnModel in Table";
@@ -776,9 +781,19 @@ public class Tables {
 			return Arrays.toString(widths)+" in ModelOrder";
 		}
 	
-		private void setColumnWidth(TableColumn column, int min, int max, int preferred, int width) {
-			if (min>=0) column.setMinWidth(min);
-			if (max>=0) column.setMaxWidth(max);
+		private static void setColumnWidth(SimplifiedColumnConfig config, TableColumn column)
+		{
+			int min       = config.minWidth;
+			int max       = config.maxWidth;
+			int preferred = config.prefWidth;
+			int width     = config.currentWidth;
+			setColumnWidth(column, min, max, preferred, width);
+		}
+		public static void setColumnWidth(TableColumn column, int min, int max, int preferred, int width)
+		{
+			if (column==null) return;
+			if (min      >=0) column.setMinWidth(min);
+			if (max      >=0) column.setMaxWidth(max);
 			if (preferred>=0) column.setPreferredWidth(preferred);
 			if (width    >=0) column.setWidth(width);
 		}
