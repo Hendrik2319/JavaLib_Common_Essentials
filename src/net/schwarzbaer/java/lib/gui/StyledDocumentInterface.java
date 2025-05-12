@@ -2,6 +2,7 @@ package net.schwarzbaer.java.lib.gui;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.Objects;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyleConstants;
@@ -37,6 +38,7 @@ public class StyledDocumentInterface {
 	}
 	
 	public void append(Style style, String format, Object... args) {
+		Objects.requireNonNull(format);
 		append(getOrCreate(style), String.format(format, args));
 	}
 
