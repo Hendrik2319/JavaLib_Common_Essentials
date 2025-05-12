@@ -28,6 +28,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
+import net.schwarzbaer.java.lib.system.ClipboardTools;
+
 public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 	private static final long serialVersionUID = 4779060880687788367L;
 	private static final Color COLOR_AXIS = new Color(0x70000000,true);
@@ -559,7 +561,16 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 			}
 			
 			if (!grouped) addSeparator();
+			JMenuItem miCopyImage = add(createMenuItem("Copy Image to Clipboard", e->{
+				ClipboardTools.copyToClipBoard( imageView.image );
+			}));
+			
+			if (!grouped) addSeparator();
 			add(createMenuItem("Reset View",e->imageView.reset()));
+			
+			addContextMenuInvokeListener((comp,x,y) -> {
+				miCopyImage.setEnabled( imageView.image!=null );
+			});
 		}
 		
 		interface MenuWrapper {
