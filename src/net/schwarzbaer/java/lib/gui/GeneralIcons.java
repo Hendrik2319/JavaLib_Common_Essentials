@@ -2,6 +2,7 @@ package net.schwarzbaer.java.lib.gui;
 
 import java.util.Objects;
 
+import javax.swing.AbstractButton;
 import javax.swing.Icon;
 
 public final class GeneralIcons
@@ -9,6 +10,17 @@ public final class GeneralIcons
 	public interface IconGroup {
 		public Icon getEnabledIcon ();
 		public Icon getDisabledIcon();
+		public default void setIcons(AbstractButton btn) { setIcon(btn, this); }
+		
+		public static void setIcon(AbstractButton btn, IconGroup icons)
+		{
+			setIcon(btn, icons.getEnabledIcon(), icons.getDisabledIcon());
+		}
+		public static void setIcon(AbstractButton btn, Icon icon, Icon disabledIcon)
+		{
+			if (icon        !=null) btn.setIcon        (icon        );
+			if (disabledIcon!=null) btn.setDisabledIcon(disabledIcon);
+		}
 	}
 	
 	public enum GrayCommandIcons {
