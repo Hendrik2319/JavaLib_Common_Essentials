@@ -20,19 +20,21 @@ public class ValueListOutput extends Vector<ValueListOutput.Entry> {
 	private Style labelStyle = null;
 	private Style valueStyle = null;
 
-	public void add(int indentLevel, String label, int     value) { add(indentLevel, label, "%d", value); }
-	public void add(int indentLevel, String label, long    value) { add(indentLevel, label, "%d", value); }
-	public void add(int indentLevel, String label, float   value) { add(indentLevel, label, "%f", value); }
-	public void add(int indentLevel, String label, double  value) { add(indentLevel, label, "%f", value); }
-	public void add(int indentLevel, String label, boolean value) { add(indentLevel, label, "%s", value); }
-	public void add(int indentLevel, String label, Integer value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Integer"); else add(indentLevel, label, "%d", value); }
-	public void add(int indentLevel, String label, Long    value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Long"   ); else add(indentLevel, label, "%d", value); }
-	public void add(int indentLevel, String label, Float   value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Float"  ); else add(indentLevel, label, "%f", value); }
-	public void add(int indentLevel, String label, Double  value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Double" ); else add(indentLevel, label, "%f", value); }
-	public void add(int indentLevel, String label, Boolean value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Boolean"); else add(indentLevel, label, "%s", value); }
-	public void add(int indentLevel, String label, String  value) { if (value==null) add(indentLevel, label, "<null> (%s)", "String" ); else add(indentLevel, label, "\"%s\"", value); }
-	public void add(int indentLevel, String label, boolean value, String trueStr, String falseStr) {                                                                          add(indentLevel, label, "%s", value ? trueStr : falseStr); }
-	public void add(int indentLevel, String label, Boolean value, String trueStr, String falseStr) { if (value==null) add(indentLevel, label, "<null> (%s)", "Boolean"); else add(indentLevel, label, "%s", value ? trueStr : falseStr); }
+	public void add(int indentLevel, String label, int       value) { add(indentLevel, label, "%d", value); }
+	public void add(int indentLevel, String label, long      value) { add(indentLevel, label, "%d", value); }
+	public void add(int indentLevel, String label, float     value) { add(indentLevel, label, "%f", value); }
+	public void add(int indentLevel, String label, double    value) { add(indentLevel, label, "%f", value); }
+	public void add(int indentLevel, String label, boolean   value) { add(indentLevel, label, "%s", value); }
+	public void add(int indentLevel, String label, char      value) { add(indentLevel, label, "%s", value); }
+	public void add(int indentLevel, String label, Integer   value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Integer"  ); else add(indentLevel, label, "%d", value); }
+	public void add(int indentLevel, String label, Long      value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Long"     ); else add(indentLevel, label, "%d", value); }
+	public void add(int indentLevel, String label, Float     value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Float"    ); else add(indentLevel, label, "%f", value); }
+	public void add(int indentLevel, String label, Double    value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Double"   ); else add(indentLevel, label, "%f", value); }
+	public void add(int indentLevel, String label, Boolean   value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Boolean"  ); else add(indentLevel, label, "%s", value); }
+	public void add(int indentLevel, String label, Character value) { if (value==null) add(indentLevel, label, "<null> (%s)", "Character"); else add(indentLevel, label, "%s", value); }
+	public void add(int indentLevel, String label, String    value) { if (value==null) add(indentLevel, label, "<null> (%s)", "String"   ); else add(indentLevel, label, "\"%s\"", value); }
+	public void add(int indentLevel, String label, boolean   value, String trueStr, String falseStr) {                                                                          add(indentLevel, label, "%s", value ? trueStr : falseStr); }
+	public void add(int indentLevel, String label, Boolean   value, String trueStr, String falseStr) { if (value==null) add(indentLevel, label, "<null> (%s)", "Boolean"); else add(indentLevel, label, "%s", value ? trueStr : falseStr); }
 	
 	public enum StyleTarget { Label, Value, CompleteLine }
 	public void setStyle(Style style, StyleTarget target, boolean forNextEntryOnly) {
