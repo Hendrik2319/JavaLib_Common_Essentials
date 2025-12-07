@@ -63,6 +63,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
+import net.schwarzbaer.java.lib.system.TriConsumer;
+
 public class Tables {
 	
 	public static int[] convertRowIndexesToModel(JTable table, int[] rowsV)
@@ -477,20 +479,27 @@ public class Tables {
 	{
 		public final int horizontalAlignment;
 		public final Class<CellType> columnClassT;
+		
 		public final Function<RowType, CellType> getValue;
 		public final BiFunction<TableModelType, RowType, CellType> getValueM;
+		
+		public final BiConsumer<RowType, CellType> setValue;
+		public final TriConsumer<TableModelType, RowType, CellType> setValueM;
+		
 		public final Function<Object, String> toString;
 		public final Function<RowType, String> toStringR;
 
 		public SimplifiedColumnConfig2(String name, Class<CellType> columnClass, int minWidth, int maxWidth, int prefWidth, int currentWidth, Integer horizontalAlignment)
 		{
-			this(name, columnClass, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment, null, null, null, null);
+			this(name, columnClass, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment, null, null, null, null, null, null);
 		}
 		
 		private SimplifiedColumnConfig2(
 				String name, Class<CellType> columnClassT, int minWidth, int maxWidth, int prefWidth, int currentWidth, Integer horizontalAlignment,
 				Function<RowType, CellType> getValue,
 				BiFunction<TableModelType, RowType, CellType> getValueM,
+				BiConsumer<RowType, CellType> setValue,
+				TriConsumer<TableModelType, RowType, CellType> setValueM,
 				Function<Object, String> toString,
 				Function<RowType, String> toStringR
 		) {
@@ -499,7 +508,9 @@ public class Tables {
 			this.horizontalAlignment = UseFulColumnDefMethods.getHorizontalAlignment(horizontalAlignment, columnClassT);
 			this.getValue  = getValue ;
 			this.getValueM = getValueM;
-			this.toString  = toString ;
+			this.setValue  = setValue;
+			this.setValueM = setValueM;
+			this.toString  = toString;
 			this.toStringR = toStringR;
 		}
 		
@@ -507,28 +518,42 @@ public class Tables {
 		{
 			return new SimplifiedColumnConfig2<>(
 					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
-					getValue, getValueM, toString, toStringR
+					getValue, getValueM, setValue, setValueM, toString, toStringR
 			);
 		}
 		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setValFunc(BiFunction<TableModelType, RowType, CellType> getValueM)
 		{
 			return new SimplifiedColumnConfig2<>(
 					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
-					getValue, getValueM, toString, toStringR
+					getValue, getValueM, setValue, setValueM, toString, toStringR
+			);
+		}
+		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setSetFunc(BiConsumer<RowType, CellType> setValue)
+		{
+			return new SimplifiedColumnConfig2<>(
+					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
+					getValue, getValueM, setValue, setValueM, toString, toStringR
+			);
+		}
+		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setSetFunc(TriConsumer<TableModelType, RowType, CellType> setValueM)
+		{
+			return new SimplifiedColumnConfig2<>(
+					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
+					getValue, getValueM, setValue, setValueM, toString, toStringR
 			);
 		}
 		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setToString(Function<CellType,String> toString)
 		{
 			return new SimplifiedColumnConfig2<>(
 					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
-					getValue, getValueM, Tables.UseFulColumnDefMethods.createToString(columnClassT, toString), toStringR
+					getValue, getValueM, setValue, setValueM, Tables.UseFulColumnDefMethods.createToString(columnClassT, toString), toStringR
 			);
 		}
 		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setToStringR(Function<RowType,String> toStringR)
 		{
 			return new SimplifiedColumnConfig2<>(
 					name, columnClassT, minWidth, maxWidth, prefWidth, currentWidth, horizontalAlignment,
-					getValue, getValueM, toString, toStringR
+					getValue, getValueM, setValue, setValueM, toString, toStringR
 			);
 		}
 	}
