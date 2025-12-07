@@ -29,6 +29,16 @@ public record ScrollPosition(int min, int max, int ext, int val)
 		int val = scrollBar.getValue();
 		return new ScrollPosition(min, max, ext, val);
 	}
+	
+	public static void keepScrollPos(JScrollPane scrollPane, ScrollBarType scrollBarType, Runnable changingTask)
+	{
+		ScrollPosition scrollPos = get(scrollPane, scrollBarType);
+		
+		changingTask.run();
+		
+		if (scrollPos!=null)
+			scrollPos.set(scrollPane, scrollBarType);
+	}
 
 	public static ScrollPosition get(JScrollPane scrollPane, ScrollBarType scrollBarType)
 	{

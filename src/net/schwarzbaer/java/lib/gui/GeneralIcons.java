@@ -25,7 +25,7 @@ public final class GeneralIcons
 	
 	public enum GrayCommandIcons {
 		Muted, UnMuted, Up, Down, Power_IsOn, Power_IsOff,
-		Reload, ReloadCCW, Download, Image, Save, Add,
+		Reload, ReloadCCW, Download, Image, List, Save, Add,
 		Copy, Paste, Cut, Delete,
 		Folder, AddFolder, ReloadFolder,
 		Play, Pause, Stop, Skip2Prev, Skip2Next,
@@ -33,7 +33,7 @@ public final class GeneralIcons
 		Visible, NotVisible,
 		
 		Muted_Dis, UnMuted_Dis, Up_Dis, Down_Dis, Power_IsOn_Dis, Power_IsOff_Dis,
-		Reload_Dis, ReloadCCW_Dis, Download_Dis, Image_Dis, Save_Dis, Add_Dis,
+		Reload_Dis, ReloadCCW_Dis, Download_Dis, Image_Dis, List_Dis, Save_Dis, Add_Dis,
 		Copy_Dis, Paste_Dis, Cut_Dis, Delete_Dis,
 		Folder_Dis, AddFolder_Dis, ReloadFolder_Dis,
 		Play_Dis, Pause_Dis, Stop_Dis, Skip2Prev_Dis, Skip2Next_Dis,
@@ -41,7 +41,7 @@ public final class GeneralIcons
 		Visible_Dis, NotVisible_Dis,
 		;
 		public Icon getIcon() { return iconSource.getCachedIcon(this); }
-		private static IconSource.CachedIcons<GrayCommandIcons> iconSource = IconSource.createCachedIcons(16, 16, 29, "GeneralIcons.GrayCommandIcons.png", GrayCommandIcons.values());
+		private static IconSource.CachedIcons<GrayCommandIcons> iconSource = IconSource.createCachedIcons(16, 16, 30, "GeneralIcons.GrayCommandIcons.png", GrayCommandIcons.values());
 		
 		public enum IconGroup implements GeneralIcons.IconGroup {
 			Muted        (GrayCommandIcons.Muted       , GrayCommandIcons.Muted_Dis       ),
@@ -54,6 +54,7 @@ public final class GeneralIcons
 			ReloadCCW    (GrayCommandIcons.ReloadCCW   , GrayCommandIcons.ReloadCCW_Dis   ),
 			Download     (GrayCommandIcons.Download    , GrayCommandIcons.Download_Dis    ),
 			Image        (GrayCommandIcons.Image       , GrayCommandIcons.Image_Dis       ),
+			List         (GrayCommandIcons.List        , GrayCommandIcons.List_Dis        ),
 			Save         (GrayCommandIcons.Save        , GrayCommandIcons.Save_Dis        ),
 			Add          (GrayCommandIcons.Add         , GrayCommandIcons.Add_Dis         ),
 			Copy         (GrayCommandIcons.Copy        , GrayCommandIcons.Copy_Dis        ),
