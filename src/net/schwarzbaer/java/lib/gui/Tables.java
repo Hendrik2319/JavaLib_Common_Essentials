@@ -1589,7 +1589,35 @@ public class Tables {
 						drawColorBlock(g, width, height, colorArr[i], i, colorArr.length);
 			}
 		}
+		
+		public static class ColorIcon implements Icon
+		{
+			private final int width;
+			private final int height;
+			private final Color color;
 
+			public ColorIcon(int width, int height, Color color)
+			{
+				this.width = width;
+				this.height = height;
+				this.color = color;
+			}
+
+			@Override public int getIconWidth() { return width; }
+			@Override public int getIconHeight() { return height; }
+
+			@Override
+			public void paintIcon(Component c, Graphics g, int x, int y)
+			{
+				drawColorBlock(g, color, width-2, height-2, x+1, y+1);
+			}
+		}
+		
+		public static ColorIcon createColorIconForTable(JTable table, int width, Color color)
+		{
+			return new ColorIcon(width, table.getRowHeight()-5, color);
+		}
+		
 		private static void drawColorBlock(Graphics g, int width, int height, Color color, int index, int count)
 		{
 			// g.setColor(Color.GRAY);
@@ -1604,6 +1632,11 @@ public class Tables {
 			int    blockOffsetX   = (int) Math.round(blockOffsetX_d);
 			int    blockOffsetY   = 3;
 			
+			drawColorBlock(g, color, blockWidth, blockHeight, blockOffsetX, blockOffsetY);
+		}
+		
+		private static void drawColorBlock(Graphics g, Color color, int blockWidth, int blockHeight, int blockOffsetX, int blockOffsetY)
+		{
 			g.setColor(Color.GRAY);
 			g.drawRect(blockOffsetX-1, blockOffsetY-1, blockWidth+1, blockHeight+1);
 			g.setColor(color);
