@@ -2,6 +2,7 @@ package net.schwarzbaer.java.lib.gui;
 
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
 public record ScrollPosition(int min, int max, int ext, int val)
 {
@@ -37,7 +38,7 @@ public record ScrollPosition(int min, int max, int ext, int val)
 		changingTask.run();
 		
 		if (scrollPos!=null)
-			scrollPos.set(scrollPane, scrollBarType);
+			SwingUtilities.invokeLater(()->scrollPos.set(scrollPane, scrollBarType));
 	}
 
 	public static ScrollPosition get(JScrollPane scrollPane, ScrollBarType scrollBarType)
