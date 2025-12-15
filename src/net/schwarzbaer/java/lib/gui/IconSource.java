@@ -3,8 +3,6 @@ package net.schwarzbaer.java.lib.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -159,11 +157,7 @@ public class IconSource<E extends Enum<E>> {
 	}
 
 	public static BufferedImage getScaledImage(BufferedImage image, int width, int height) {
-		BufferedImage bufferedImage = new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2 = bufferedImage.createGraphics();
-		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-		g2.drawImage(image, 0, 0, width, height, null);
-		return bufferedImage;
+		return ImageTools.scale(image, width, height);
 	}
 
 	public static Icon combine(Icon icon1, Icon icon2) {
@@ -272,13 +266,16 @@ public class IconSource<E extends Enum<E>> {
 	}
 	
 	public static class CachedIcons<E extends Enum<E>> {
-		private EnumMap<E, Icon> enumIconCache;
+		private final EnumMap<E, Icon> enumIconCache;
+		private final IconSource<E> iconSource;
 		public CachedIcons(IconSource<E> iconSource, E[] keys) {
+			this.iconSource = iconSource;
 			enumIconCache = new EnumMap<>(keys[0].getDeclaringClass());
 			for (E key:keys) enumIconCache.put(key, iconSource.getIcon(key));
 		}
 		public Icon getCachedIcon(E key) { return enumIconCache.get(key); }
 		public void setCachedIcon(E key, Icon icon) { enumIconCache.put(key, icon); }
+		public BufferedImage getImageFromSource(E key) { return iconSource.getImage(key); }
 	}
 
 	public static class CachedIndexedImages {

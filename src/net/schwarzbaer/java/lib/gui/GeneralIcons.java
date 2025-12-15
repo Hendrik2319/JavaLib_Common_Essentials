@@ -1,5 +1,6 @@
 package net.schwarzbaer.java.lib.gui;
 
+import java.awt.image.BufferedImage;
 import java.util.Objects;
 
 import javax.swing.AbstractButton;
@@ -41,6 +42,7 @@ public final class GeneralIcons
 		Visible_Dis, NotVisible_Dis,
 		;
 		public Icon getIcon() { return iconSource.getCachedIcon(this); }
+		public BufferedImage getImageFromSource() { return iconSource.getImageFromSource(this); }
 		private static IconSource.CachedIcons<GrayCommandIcons> iconSource = IconSource.createCachedIcons(16, 16, 30, "GeneralIcons.GrayCommandIcons.png", GrayCommandIcons.values());
 		
 		public enum IconGroup implements GeneralIcons.IconGroup {
