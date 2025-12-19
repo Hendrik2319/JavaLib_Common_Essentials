@@ -265,12 +265,12 @@ public class Settings<ValueGroup extends Enum<ValueGroup> & Settings.GroupKeys<V
 		}
 		public void registerExtraWindow(Window window, ValueKey windowX, ValueKey windowY, ValueKey windowWidth, ValueKey windowHeight, int defaultWindowWidth, int defaultWindowHeight, boolean forceSize) {
 			registerWindow(window, defaultWindowWidth, defaultWindowHeight, forceSize, new WindowSizePosStorage() {
-				@Override public boolean isPosSet (String[] prefkeys) { return contains(windowX, windowY); }
-				@Override public boolean isSizeSet(String[] prefkeys) { return contains(windowWidth, windowHeight); }
-				@Override public Point     getWindowPos (              ) { return getPoint(windowX, windowY); }
-				@Override public void      setWindowPos (Point location) {        putPoint(windowX, windowY,location); }
-				@Override public Dimension getWindowSize(              ) { return getDimension(windowWidth, windowHeight); }
-				@Override public void      setWindowSize(Dimension size) {        putDimension(windowWidth, windowHeight,size); }
+				@Override public boolean    isPosSet (String[] prefkeys) { return windowX    !=null && windowY     !=null && contains(windowX    , windowY     ); }
+				@Override public boolean    isSizeSet(String[] prefkeys) { return windowWidth!=null && windowHeight!=null && contains(windowWidth, windowHeight); }
+				@Override public Point     getWindowPos (              ) { return windowX    ==null || windowY     ==null ? null : getPoint(windowX, windowY); }
+				@Override public void      setWindowPos (Point location) {    if (windowX    !=null && windowY     !=null)         putPoint(windowX, windowY,location); }
+				@Override public Dimension getWindowSize(              ) { return windowWidth==null || windowHeight==null ? null : getDimension(windowWidth, windowHeight); }
+				@Override public void      setWindowSize(Dimension size) {    if (windowWidth!=null && windowHeight!=null)         putDimension(windowWidth, windowHeight,size); }
 			});
 		}
 		
