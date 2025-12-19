@@ -1255,10 +1255,19 @@ public class Tables {
 		private final Function<Object, String> converter;
 		private Function<Object, Color> colorizer;
 		
-		public NonStringRenderer(Function<Object,String> converter) {
+		public NonStringRenderer(Function<Object,String> converter)
+		{
+			this(converter, new Dimension(1,16));
+		}
+		public NonStringRenderer(Function<Object,String> converter, int prefWidth)
+		{
+			this(converter, new Dimension(prefWidth,16));
+		}
+		public NonStringRenderer(Function<Object,String> converter, Dimension preferredSize)
+		{
 			this.converter = converter;
 			this.comp = new LabelRendererComponent();
-			comp.setPreferredSize(new Dimension(1,16));
+			comp.setPreferredSize(preferredSize);
 			this.colorizer = null;
 		}
 		
