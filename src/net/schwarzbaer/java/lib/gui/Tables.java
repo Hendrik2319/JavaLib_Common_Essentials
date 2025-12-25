@@ -1114,11 +1114,16 @@ public class Tables {
 		public interface CellBasedValueSource<T> {
 			Vector<T> get(int rowM, int columnM);
 		}
+		
+		public interface CellBasedListCellRenderer<T> extends ListCellRenderer<T> {
+			void setPos(int rowM, int columnM, Object currentValue);
+		}
 
 		private Object currentValue;
 		protected Vector<T> valueVector;
 		protected T[] valueArray;
 		private ListCellRenderer<? super T> renderer;
+		private CellBasedListCellRenderer<? super T> rendererCellBased;
 		private final Supplier<Vector<T>> volatileValueSource;
 		private final CellBasedValueSource<T> cellBasedValueSource;
 		
@@ -1145,6 +1150,7 @@ public class Tables {
 			this.cellBasedValueSource = cellBasedValueSource;
 			this.currentValue = null;
 			this.renderer = null;
+			this.rendererCellBased = null;
 		}
 		public void addValue(T newValue) {
 			if (volatileValueSource !=null) throw new UnsupportedOperationException();
@@ -1176,10 +1182,17 @@ public class Tables {
 
 		public void setRenderer(ListCellRenderer<? super T> renderer) {
 			this.renderer = renderer;
+			this.rendererCellBased = null;
+		}
+
+		public void setRenderer(CellBasedListCellRenderer<? super T> renderer) {
+			this.renderer = null;
+			this.rendererCellBased = renderer;
 		}
 
 		public void setRenderer(Function<Object,String> converter) {
 			this.renderer = new NonStringRenderer<>(converter);
+			this.rendererCellBased = null;
 		}
 		
 		@Override
@@ -1190,7 +1203,8 @@ public class Tables {
 		protected void updateAtEditStart(int rowM, int columnM) {}
 
 		@Override
-		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column)
+		{
 			this.currentValue = value;
 			
 			int rowM    = table.convertRowIndexToModel(row);
@@ -1204,8 +1218,15 @@ public class Tables {
 			else if (cellBasedValueSource!=null) cmbbx = new JComboBox<>(cellBasedValueSource.get(rowM, columnM));
 			else                                 cmbbx = null;
 			
-			if (cmbbx!=null) {
-				if (renderer!=null) cmbbx.setRenderer(renderer);
+			if (cmbbx!=null)
+			{
+				if (renderer!=null)
+					cmbbx.setRenderer(renderer);
+				if (rendererCellBased!=null)
+				{
+					rendererCellBased.setPos(rowM, columnM, currentValue);
+					cmbbx.setRenderer(rendererCellBased);
+				}
 				cmbbx.setSelectedItem(currentValue);
 				cmbbx.setBackground(isSelected?table.getSelectionBackground():table.getBackground());
 				cmbbx.addActionListener(e->{
