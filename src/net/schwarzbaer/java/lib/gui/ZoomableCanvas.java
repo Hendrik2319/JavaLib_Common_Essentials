@@ -181,12 +181,18 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 	private void startPan(Point point) {
 		panStart = point;
 		viewState.tempPanOffset = new Point();
-		for (PanListener pl : panListeners) pl.panStarted();
+		for (PanListener pl : panListeners)
+			pl.panStarted();
 	}
 
 	private void proceedPan(Point point) {
 		if (panStart != null)
+		{
 			viewState.tempPanOffset = sub(point,panStart);
+			for (PanListener pl : panListeners)
+				if (pl instanceof PanListener2 pl2)
+					pl2.panProceeded();
+		}
 	}
 
 	private void stopPan(Point point) {
@@ -197,7 +203,8 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 		
 		panStart = null;
 		viewState.tempPanOffset = null;
-		for (PanListener pl : panListeners) pl.panStopped();
+		for (PanListener pl : panListeners)
+			pl.panStopped();
 	}
 
 	private void zoom(Point point, double preciseWheelRotation) {
@@ -216,6 +223,10 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 	public interface PanListener {
 		void panStarted();
 		void panStopped();
+	}
+	
+	public interface PanListener2 extends PanListener {
+		void panProceeded();
 	}
 	
 	private final Vector<PanListener> panListeners;
