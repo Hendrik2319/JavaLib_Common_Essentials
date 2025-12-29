@@ -2118,31 +2118,86 @@ public class Tables {
 		}
 	}
 	
+	public interface DataSource<ValueType>
+	{
+		int size();
+		ValueType get(int index);
+		int indexOf(ValueType value);
+		
+		public static <ValueType> DataSource<ValueType> createFrom(List<ValueType> list)
+		{
+			return new DataSource<>()
+			{
+				@Override
+				public int size()
+				{
+					return list==null ? 0 : list.size();
+				}
+
+				@Override
+				public ValueType get(int index)
+				{
+					if (list==null || index<0 || index>=list.size())
+						return null;
+					return list.get(index);
+				}
+
+				@Override
+				public int indexOf(ValueType value)
+				{
+					return list==null ? -1 : list.indexOf(value);
+				}
+			};
+		}
+		
+		public static <ValueType> DataSource<ValueType> createFrom(ValueType[] array)
+		{
+			return new DataSource<>()
+			{
+				@Override public int size()
+				{
+					return array==null ? 0 : array.length;
+				}
+				
+				@Override public ValueType get(int index)
+				{
+					if (array==null || index<0 || index>=array.length)
+						return null;
+					return array[index];
+				}
+				
+				@Override public int indexOf(ValueType value)
+				{
+					if (array!=null)
+						for (int i=0; i<array.length; i++)
+							if (array[i]==value)
+								return i;
+					return -1;
+				}
+			};
+		}
+	}
+	
 	public static class SimpleGetValueTableModel<ValueType, ColumnIDType extends AbstractGetValueTableModel.ColumnIDTypeInt<ValueType>>
 		extends AbstractGetValueTableModel<ValueType, ColumnIDType>
 		implements Tables.StandardTableModelExtension<ValueType>
 	{
-		protected ValueType[] dataArr;
-		protected Vector<ValueType> dataVec;
+		protected DataSource<ValueType> dataSource;
 
-		public SimpleGetValueTableModel(ColumnIDType[] columns                        ) { this(columns, null, null); }
-		public SimpleGetValueTableModel(ColumnIDType[] columns, ValueType[]       data) { this(columns, data, null); }
-		public SimpleGetValueTableModel(ColumnIDType[] columns, Vector<ValueType> data) { this(columns, null, data); }
-		
-		private SimpleGetValueTableModel(ColumnIDType[] columns, ValueType[] dataArr, Vector<ValueType> dataVec)
+		public SimpleGetValueTableModel(ColumnIDType[] columns                            ) { this(columns, (DataSource<ValueType>) null); }
+		public SimpleGetValueTableModel(ColumnIDType[] columns, ValueType[]           data) { this(columns, DataSource.createFrom(data)); }
+		public SimpleGetValueTableModel(ColumnIDType[] columns, List      <ValueType> data) { this(columns, DataSource.createFrom(data)); }
+		public SimpleGetValueTableModel(ColumnIDType[] columns, DataSource<ValueType> data)
 		{
 			super(columns);
-			this.dataArr = dataArr;
-			this.dataVec = dataVec;
+			this.dataSource = data;
 		}
 
-		public void setData(ValueType[]       data) { setData(data, null); }
-		public void setData(Vector<ValueType> data) { setData(null, data); }
-
-		private void setData(ValueType[] dataArr, Vector<ValueType> dataVec)
+		public void setData(ValueType[]           data) { setData(DataSource.createFrom(data)); }
+		public void setData(List      <ValueType> data) { setData(DataSource.createFrom(data)); }
+		public void setData(DataSource<ValueType> data)
 		{
-			this.dataArr = dataArr;
-			this.dataVec = dataVec;
+			this.dataSource = data;
 			fireTableUpdate(); 
 		}
 
@@ -2150,36 +2205,23 @@ public class Tables {
 		public void setDefaultCellEditorsAndRenderers() {}
 		
 		@Override
-		public int getRowCount() { return dataVec != null ? dataVec.size() : dataArr != null ? dataArr.length : 0; }
+		public int getRowCount()
+		{
+			return dataSource != null ? dataSource.size() : 0;
+		}
 		
 		public int getRowIndex(ValueType row)
 		{
-			if (dataVec!=null)
-				return dataVec.indexOf(row);
-			if (dataArr!=null)
-				for (int i=0; i<dataArr.length; i++)
-					if (dataArr[i]==row)
-						return i;
-			return -1;
+			return dataSource != null ? dataSource.indexOf(row) : -1;
 		}
 		
 		@Override
 		public ValueType getRow(int rowIndex)
 		{
-			if (rowIndex<0) return null;
+			if (dataSource==null || rowIndex<0 || rowIndex>=dataSource.size())
+				return null;
 			
-			if (dataVec != null)
-			{
-				if (dataVec.size()<=rowIndex) return null;
-				return dataVec.get( rowIndex );
-			}
-			
-			if (dataArr != null)
-			{
-				if (dataArr.length<=rowIndex) return null;
-				return dataArr[ rowIndex ];
-			}
-			return null;
+			return dataSource.get(rowIndex);
 		}
 	}
 	
@@ -2191,9 +2233,10 @@ public class Tables {
 			BiFunction<TableModelType,ValueType, ?> getGetValueM();
 		}
 
-		public SimpleGetValueTableModel2(ColumnIDType[] columns) { super(columns); }
-		public SimpleGetValueTableModel2(ColumnIDType[] columns, ValueType[] data) { super(columns, data); }
-		public SimpleGetValueTableModel2(ColumnIDType[] columns, Vector<ValueType> data) { super(columns, data); }
+		public SimpleGetValueTableModel2(ColumnIDType[] columns                            ) { super(columns      ); }
+		public SimpleGetValueTableModel2(ColumnIDType[] columns, ValueType[]           data) { super(columns, data); }
+		public SimpleGetValueTableModel2(ColumnIDType[] columns, List      <ValueType> data) { super(columns, data); }
+		public SimpleGetValueTableModel2(ColumnIDType[] columns, DataSource<ValueType> data) { super(columns, data); }
 		
 		protected abstract ThisTableModelType getThis();
 		
