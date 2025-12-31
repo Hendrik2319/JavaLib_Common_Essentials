@@ -2223,6 +2223,20 @@ public class Tables {
 			
 			return dataSource.get(rowIndex);
 		}
+		
+		public void forEachRow(BiConsumer<Integer,ValueType> action)
+		{
+			if (dataSource==null)
+				return;
+			
+			for (int i=0; i<dataSource.size(); i++)
+				action.accept(i, dataSource.get(i));
+		}
+		
+		public void forEachRow(Consumer<ValueType> action)
+		{
+			forEachRow((i,row) -> action.accept(row));
+		}
 	}
 	
 	public static abstract class SimpleGetValueTableModel2<ThisTableModelType, ValueType, ColumnIDType extends SimpleGetValueTableModel2.ColumnIDTypeInt2<ThisTableModelType,ValueType>>
