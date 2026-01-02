@@ -2278,22 +2278,28 @@ public class Tables {
 	> implements TableCellRenderer
 	{
 		private final Class<TableModelType>     tableModelClass;
-		private final ColorRendererComponent    rendCompColor;
+		private final    ColorRendererComponent rendCompColor;
 		private final CheckBoxRendererComponent rendCompCheckBox;
-		private final LabelRendererComponent    rendCompLabel;
-		private Colorizer<ValueType, ColumnIDType> textColorizer;
-		private Colorizer<ValueType, ColumnIDType> backgroundColorizer;
-		private CombinedColorizer<ValueType, ColumnIDType> combinedColorizer;
+		private final    LabelRendererComponent rendCompLabel;
+		private Colorizer        <ValueType, ColumnIDType>       textColorizer;
+		private Colorizer        <ValueType, ColumnIDType> backgroundColorizer;
+		private CombinedColorizer<ValueType, ColumnIDType>   combinedColorizer;
+		private SpecialModifier<   ColorRendererComponent, ValueType, ColumnIDType>    colorRCModifier;
+		private SpecialModifier<CheckBoxRendererComponent, ValueType, ColumnIDType> checkBoxRCModifier;
+		private SpecialModifier<   LabelRendererComponent, ValueType, ColumnIDType>    labelRCModifier;
 		
 		public GeneralizedTableCellRenderer2(Class<TableModelType> tableModelClass)
 		{
 			this.tableModelClass = Objects.requireNonNull( tableModelClass );
-			rendCompColor    = new ColorRendererComponent();
+			rendCompColor    = new    ColorRendererComponent();
 			rendCompCheckBox = new CheckBoxRendererComponent();
-			rendCompLabel    = new LabelRendererComponent();
-			textColorizer = null;
+			rendCompLabel    = new    LabelRendererComponent();
+			      textColorizer = null;
 			backgroundColorizer = null;
-			combinedColorizer = null;
+			  combinedColorizer = null;
+			   colorRCModifier = null;
+			checkBoxRCModifier = null;
+			   labelRCModifier = null;
 		}
 		
 		public record ColorPair(Color textColor, Color backgroundColor) {}
@@ -2308,20 +2314,9 @@ public class Tables {
 			ColorPair getColor(Object value, int rowM, int columnM, ColumnIDType columnID, ValueType row);
 		}
 		
-		public void setTextColorizer(Colorizer<ValueType, ColumnIDType> colorizer)
-		{
-			this.textColorizer = colorizer;
-		}
-		
-		public void setBackgroundColorizer(Colorizer<ValueType, ColumnIDType> colorizer)
-		{
-			this.backgroundColorizer = colorizer;
-		}
-		
-		public void setCombinedColorizer(CombinedColorizer<ValueType, ColumnIDType> colorizer)
-		{
-			this.combinedColorizer = colorizer;
-		}
+		public void setTextColorizer      (Colorizer        <ValueType, ColumnIDType> colorizer) { this.      textColorizer = colorizer; }
+		public void setBackgroundColorizer(Colorizer        <ValueType, ColumnIDType> colorizer) { this.backgroundColorizer = colorizer; }
+		public void setCombinedColorizer  (CombinedColorizer<ValueType, ColumnIDType> colorizer) { this.  combinedColorizer = colorizer; }
 		
 		private ColorPair getColor(Object value, int rowM, int columnM, ColumnIDType columnID, ValueType row)
 		{
@@ -2336,11 +2331,20 @@ public class Tables {
 					backgroundColorizer==null ? null : backgroundColorizer.getColor(value, rowM, columnM, columnID, row)
 			);
 		}
+		
+		public interface SpecialModifier<RenderCompType, ValueType, ColumnIDType>
+		{
+			void changeRenderComp(RenderCompType renderComp, Object value, int rowM, int columnM, ColumnIDType columnID, ValueType row);
+		}
+		
+		public void setColorRCModifier   (SpecialModifier<   ColorRendererComponent, ValueType, ColumnIDType>    colorRCModifier) { this.   colorRCModifier =    colorRCModifier; }
+		public void setCheckBoxRCModifier(SpecialModifier<CheckBoxRendererComponent, ValueType, ColumnIDType> checkBoxRCModifier) { this.checkBoxRCModifier = checkBoxRCModifier; }
+		public void setLabelRCModifier   (SpecialModifier<   LabelRendererComponent, ValueType, ColumnIDType>    labelRCModifier) { this.   labelRCModifier =    labelRCModifier; }
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowV, int columnV)
 		{
-			Component rendComp = rendCompLabel;
+			final Component rendComp;
 			Supplier<Color> getCustomBackground = null;
 			Supplier<Color> getCustomForeground = null;
 			int columnM = table.convertColumnIndexToModel(columnV);
@@ -2357,7 +2361,12 @@ public class Tables {
 				}
 				
 				String valueStr = value==null ? null : value.toString();
+				
+				rendComp = rendCompLabel;
 				rendCompLabel.configureAsTableCellRendererComponent(table, null, valueStr, isSelected, hasFocus, getCustomBackground, getCustomForeground);
+				
+				if (labelRCModifier!=null)
+					labelRCModifier.changeRenderComp(rendCompLabel, value, rowM, columnM, null, null);
 			}
 			else
 			{
@@ -2380,6 +2389,9 @@ public class Tables {
 				{
 					rendComp = rendCompColor;
 					rendCompColor.configureAsTableCellRendererComponent(table, value, isSelected, hasFocus, null, getCustomBackground, getCustomForeground);
+					
+					if (colorRCModifier!=null)
+						colorRCModifier.changeRenderComp(rendCompColor, value, rowM, columnM, columnID, row);
 				}
 				else if (columnClass==Boolean.class && value instanceof Boolean bool)
 				{
@@ -2387,6 +2399,9 @@ public class Tables {
 					rendCompCheckBox.configureAsTableCellRendererComponent(table, bool, null, isSelected, hasFocus, getCustomForeground, getCustomBackground);
 					if (columnCfg!=null)
 						rendCompCheckBox.setHorizontalAlignment(columnCfg.horizontalAlignment);
+					
+					if (checkBoxRCModifier!=null)
+						checkBoxRCModifier.changeRenderComp(rendCompCheckBox, value, rowM, columnM, columnID, row);
 				}
 				else
 				{
@@ -2400,9 +2415,13 @@ public class Tables {
 							valueStr = columnCfg.toStringR.apply(row);
 					}
 					
+					rendComp = rendCompLabel;
 					rendCompLabel.configureAsTableCellRendererComponent(table, null, valueStr, isSelected, hasFocus, getCustomBackground, getCustomForeground);
 					if (columnCfg!=null)
 						rendCompLabel.setHorizontalAlignment(columnCfg.horizontalAlignment);
+					
+					if (labelRCModifier!=null)
+						labelRCModifier.changeRenderComp(rendCompLabel, value, rowM, columnM, columnID, row);
 				}
 			}
 			
