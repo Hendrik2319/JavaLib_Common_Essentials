@@ -567,8 +567,9 @@ public class Tables {
 		public static int getHorizontalAlignment(Integer horizontalAlignment, Class<?> columnClass)
 		{
 			if (horizontalAlignment != null) return horizontalAlignment;
-			if (columnClass == null        ) return SwingConstants.LEFT;
-			if (columnClass == String.class) return SwingConstants.LEFT;
+			if (columnClass == null         ) return SwingConstants.LEFT;
+			if (columnClass == String .class) return SwingConstants.LEFT;
+			if (columnClass == Boolean.class) return SwingConstants.CENTER;
 			if (Number.class.isAssignableFrom(columnClass)) return SwingConstants.RIGHT;
 			return SwingConstants.LEFT;
 		}
@@ -2246,6 +2247,11 @@ public class Tables {
 		{
 			BiFunction<TableModelType,ValueType, ?> getGetValueM();
 		}
+		public interface ColumnIDTypeInt2b<TableModelType, ValueType> extends ColumnIDTypeInt2<TableModelType, ValueType>
+		{
+			@Override
+			SimplifiedColumnConfig2<TableModelType, ValueType, ?> getColumnConfig();
+		}
 
 		public SimpleGetValueTableModel2(ColumnIDType[] columns                            ) { super(columns      ); }
 		public SimpleGetValueTableModel2(ColumnIDType[] columns, ValueType[]           data) { super(columns, data); }
@@ -2262,6 +2268,145 @@ public class Tables {
 				return getValueM.apply(getThis(), row);
 			
 			return super.getValueAt(rowIndex, columnIndex, columnID, row);
+		}
+	}
+	
+	public static class GeneralizedTableCellRenderer2<
+			ValueType,
+			ColumnIDType   extends SimpleGetValueTableModel2.ColumnIDTypeInt2b<TableModelType, ValueType>,
+			TableModelType extends SimpleGetValueTableModel2<TableModelType, ValueType, ColumnIDType>
+	> implements TableCellRenderer
+	{
+		private final Class<TableModelType>     tableModelClass;
+		private final ColorRendererComponent    rendCompColor;
+		private final CheckBoxRendererComponent rendCompCheckBox;
+		private final LabelRendererComponent    rendCompLabel;
+		private Colorizer<ValueType, ColumnIDType> textColorizer;
+		private Colorizer<ValueType, ColumnIDType> backgroundColorizer;
+		private CombinedColorizer<ValueType, ColumnIDType> combinedColorizer;
+		
+		public GeneralizedTableCellRenderer2(Class<TableModelType> tableModelClass)
+		{
+			this.tableModelClass = Objects.requireNonNull( tableModelClass );
+			rendCompColor    = new ColorRendererComponent();
+			rendCompCheckBox = new CheckBoxRendererComponent();
+			rendCompLabel    = new LabelRendererComponent();
+			textColorizer = null;
+			backgroundColorizer = null;
+			combinedColorizer = null;
+		}
+		
+		public record ColorPair(Color textColor, Color backgroundColor) {}
+		
+		public interface Colorizer<ValueType, ColumnIDType>
+		{
+			Color getColor(Object value, int rowM, int columnM, ColumnIDType columnID, ValueType row);
+		}
+		
+		public interface CombinedColorizer<ValueType, ColumnIDType>
+		{
+			ColorPair getColor(Object value, int rowM, int columnM, ColumnIDType columnID, ValueType row);
+		}
+		
+		public void setTextColorizer(Colorizer<ValueType, ColumnIDType> colorizer)
+		{
+			this.textColorizer = colorizer;
+		}
+		
+		public void setBackgroundColorizer(Colorizer<ValueType, ColumnIDType> colorizer)
+		{
+			this.backgroundColorizer = colorizer;
+		}
+		
+		public void setCombinedColorizer(CombinedColorizer<ValueType, ColumnIDType> colorizer)
+		{
+			this.combinedColorizer = colorizer;
+		}
+		
+		private ColorPair getColor(Object value, int rowM, int columnM, ColumnIDType columnID, ValueType row)
+		{
+			if (combinedColorizer!=null)
+				return combinedColorizer.getColor(value, rowM, columnM, columnID, row);
+			
+			if (textColorizer==null && backgroundColorizer==null)
+				return null;
+			
+			return new ColorPair (
+					textColorizer      ==null ? null : textColorizer      .getColor(value, rowM, columnM, columnID, row),
+					backgroundColorizer==null ? null : backgroundColorizer.getColor(value, rowM, columnM, columnID, row)
+			);
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowV, int columnV)
+		{
+			Component rendComp = rendCompLabel;
+			Supplier<Color> getCustomBackground = null;
+			Supplier<Color> getCustomForeground = null;
+			int columnM = table.convertColumnIndexToModel(columnV);
+			int rowM    = table.convertRowIndexToModel   (rowV   );
+			
+			TableModel rawTableModel = table==null ? null : table.getModel();
+			if (table==null || !tableModelClass.isInstance(rawTableModel))
+			{
+				ColorPair colors = getColor(value, rowM, columnM, null, null);
+				if (colors!=null)
+				{
+					if (colors.      textColor!=null) getCustomForeground = () -> colors.      textColor;
+					if (colors.backgroundColor!=null) getCustomBackground = () -> colors.backgroundColor;
+				}
+				
+				String valueStr = value==null ? null : value.toString();
+				rendCompLabel.configureAsTableCellRendererComponent(table, null, valueStr, isSelected, hasFocus, getCustomBackground, getCustomForeground);
+			}
+			else
+			{
+				TableModelType tableModel = tableModelClass.cast(rawTableModel);
+				
+				ColumnIDType columnID = tableModel.getColumnID(columnM);
+				SimplifiedColumnConfig2<TableModelType, ValueType, ?> columnCfg = columnID==null ? null : columnID.getColumnConfig();
+				Class<?> columnClass = columnCfg==null ? null : columnCfg.columnClass;
+				
+				ValueType row = tableModel.getRow(rowM);
+				
+				ColorPair colors = getColor(value, rowM, columnM, columnID, row);
+				if (colors!=null)
+				{
+					if (colors.      textColor!=null) getCustomForeground = () -> colors.      textColor;
+					if (colors.backgroundColor!=null) getCustomBackground = () -> colors.backgroundColor;
+				}
+				
+				if ( (columnClass==Color.class && value instanceof Color) || (columnClass==Color[].class && value instanceof Color[]))
+				{
+					rendComp = rendCompColor;
+					rendCompColor.configureAsTableCellRendererComponent(table, value, isSelected, hasFocus, null, getCustomBackground, getCustomForeground);
+				}
+				else if (columnClass==Boolean.class && value instanceof Boolean bool)
+				{
+					rendComp = rendCompCheckBox;
+					rendCompCheckBox.configureAsTableCellRendererComponent(table, bool, null, isSelected, hasFocus, getCustomForeground, getCustomBackground);
+					if (columnCfg!=null)
+						rendCompCheckBox.setHorizontalAlignment(columnCfg.horizontalAlignment);
+				}
+				else
+				{
+					String valueStr = value==null ? null : value.toString();
+					if (columnCfg!=null)
+					{
+						if (columnCfg.toString!=null)
+							valueStr = columnCfg.toString.apply(value);
+						
+						else if (columnCfg.toStringR!=null)
+							valueStr = columnCfg.toStringR.apply(row);
+					}
+					
+					rendCompLabel.configureAsTableCellRendererComponent(table, null, valueStr, isSelected, hasFocus, getCustomBackground, getCustomForeground);
+					if (columnCfg!=null)
+						rendCompLabel.setHorizontalAlignment(columnCfg.horizontalAlignment);
+				}
+			}
+			
+			return rendComp;
 		}
 	}
 	
