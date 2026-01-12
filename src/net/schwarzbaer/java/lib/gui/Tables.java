@@ -2446,24 +2446,31 @@ public class Tables {
 			clickedRowIndex = -1;
 			clickedColumnID = null;
 			
+			insertBeforeStdElements();
+			
 			add(new JMenuItem("Show Column Widths"))
 			.addActionListener(e->{
-				System.out.printf("Column Widths: %s%n", SimplifiedTableModel.getColumnWidthsAsString(table));
+				System.out.printf("Column Widths: %s%n", SimplifiedTableModel.getColumnWidthsAsString(this.table));
 			});
 			
 			addContextMenuInvokeListener((comp, x, y) -> {
 				Point point = new Point(x,y);
-				int columnV = table.columnAtPoint(point);
-				int columnM = columnV<0 ? -1 : table.convertColumnIndexToModel(columnV);
-				int rowV = table.rowAtPoint(point);
-				int rowM = rowV<0 ? -1 : table.convertRowIndexToModel(rowV);
+				int columnV = this.table.columnAtPoint(point);
+				int columnM = columnV<0 ? -1 : this.table.convertColumnIndexToModel(columnV);
+				int rowV = this.table.rowAtPoint(point);
+				int rowM = rowV<0 ? -1 : this.table.convertRowIndexToModel(rowV);
 				clickedRowIndex = rowM;
-				clickedRow = rowM<0 ? null : tableModel.getRow(rowM);
-				clickedColumnID = tableModel.getColumnID(columnM);
+				clickedRow = rowM<0 ? null : this.tableModel.getRow(rowM);
+				clickedColumnID = this.tableModel.getColumnID(columnM);
+				
+				updateElementsBeforeInvokationOfContextMenu();
 			});
 			
-			addTo(table);
+			addTo(this.table);
 		}
+
+		protected void insertBeforeStdElements() {}
+		protected void updateElementsBeforeInvokationOfContextMenu() {}
 	}
 	
 	public static class ArrayReorderer<V>
