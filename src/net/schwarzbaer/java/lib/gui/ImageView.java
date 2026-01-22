@@ -63,8 +63,8 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 	private Color bgColor;
 	private BGPattern bgPattern;
 	private boolean useInterpolation;
-	private boolean useBetterInterpolation;
-	private final BetterScaling betterScaling;
+	private boolean useAreaSampling;
+	private final AreaSampling areaSampling;
 	private final ImageViewContextMenu contextMenu;
 	private final Vector<DrawExtension> drawExtensions;
 	
@@ -79,13 +79,13 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 		bgColor = null;
 		bgPattern = null;
 		useInterpolation = interpolationLevel==null || interpolationLevel.isGreaterThan(InterpolationLevel.Level0_NearestNeighbor);
-		useBetterInterpolation = interpolationLevel==InterpolationLevel.Level2_Better;
+		useAreaSampling = interpolationLevel==InterpolationLevel.Level2_AreaSampling;
 		setPreferredSize(width, height);
 		activateMapScale(COLOR_AXIS, "px", true);
 		activateAxes(COLOR_AXIS, true,true,true,true);
 		
-		betterScaling = new BetterScaling(this::repaint);
-		addZoomListener(this::updateBetterInterpolation);
+		areaSampling = new AreaSampling(this::repaint);
+		addZoomListener(this::updateAreaSampling);
 		
 		contextMenu = contextMenuConstructor==null
 				? new ImageViewContextMenu     (this, interpolationLevel!=null, withGroupedContexMenu)
@@ -100,7 +100,7 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 	}
 
 	public enum InterpolationLevel {
-		Level0_NearestNeighbor, Level1_Bicubic, Level2_Better;
+		Level0_NearestNeighbor, Level1_Bicubic, Level2_AreaSampling;
 
 		public boolean isGreaterThan(InterpolationLevel other) {
 			if (other==null) return true;
@@ -108,31 +108,31 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 		}
 	}
 	
-	private void updateBetterInterpolation() {
-		if (useBetterInterpolation && this.image!=null && viewState.isOk()) {
+	private void updateAreaSampling() {
+		if (useAreaSampling && this.image!=null && viewState.isOk()) {
 			int imageX      = viewState.convertPos_AngleToScreen_LongX(0);
 			int imageY      = viewState.convertPos_AngleToScreen_LatY (0);
 			int imageWidth  = viewState.convertPos_AngleToScreen_LongX(this.image.getWidth ()) - imageX;
 			int imageHeight = viewState.convertPos_AngleToScreen_LatY (this.image.getHeight()) - imageY;
 			if (imageWidth<this.image.getWidth() && imageHeight<this.image.getHeight())
-				betterScaling.scaleImage(this.image, imageWidth, imageHeight);
+				areaSampling.scaleImage(this.image, imageWidth, imageHeight);
 			else
-				betterScaling.clearResult();
+				areaSampling.clearResult();
 		} else
-			betterScaling.clearResult();
+			areaSampling.clearResult();
 	}
 	
-	public static BufferedImage computeScaledImageByBetterScaling(BufferedImage image, int targetWidth, int targetHeight, boolean ignoreAlpha) {
-		return BetterScaling.computeScaledImage(image, targetWidth, targetHeight, ignoreAlpha);
+	public static BufferedImage computeScaledImageByAreaSampling(BufferedImage image, int targetWidth, int targetHeight, boolean ignoreAlpha) {
+		return AreaSampling.computeScaledImage(image, targetWidth, targetHeight, ignoreAlpha);
 	}
 	
-	private static class BetterScaling {
+	private static class AreaSampling {
 		
 		private final Runnable repaint;
 		private final ExecutorService scheduler;
 		private Future<BufferedImage> runningTask;
 		
-		BetterScaling(Runnable repaint) {
+		AreaSampling(Runnable repaint) {
 			this.repaint = repaint;
 			if (this.repaint==null) throw new IllegalArgumentException();
 			scheduler = Executors.newSingleThreadExecutor();
@@ -141,9 +141,7 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 
 		public synchronized void scaleImage(BufferedImage image, int targetWidth, int targetHeight) {
 			if (image==null)
-				throw new IllegalArgumentException("BetterInterpolation.recomputeImage(null, ...) is not allowed.");
-			if (image.getWidth()<targetWidth || image.getHeight()<targetHeight)
-				throw new IllegalArgumentException("BetterInterpolation.recomputeImage(): Target width and height must be smaller than current image size.");
+				throw new IllegalArgumentException("AreaSampling.scaleImage: image == null is not allowed.");
 			
 			if (runningTask!=null && !runningTask.isCancelled() && !runningTask.isDone())
 				runningTask.cancel(true);
@@ -151,9 +149,9 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 			runningTask = scheduler.submit(()->{
 				BufferedImage newImage = computeScaledImage(image, targetWidth, targetHeight);
 				//if (Thread.currentThread().isInterrupted())
-				//	System.out.println("BetterScaling.computeScaledImage -> interrupted");
+				//	System.out.println("AreaSampling.computeScaledImage -> interrupted");
 				//else
-				//	System.out.println("BetterScaling.computeScaledImage -> finished");
+				//	System.out.println("AreaSampling.computeScaledImage -> finished");
 				SwingUtilities.invokeLater(repaint);
 				return newImage;
 			});
@@ -304,23 +302,23 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 		
 	}
 	
-	public boolean useInterpolation      () { return useInterpolation      ; }
-	public boolean useBetterInterpolation() { return useBetterInterpolation; }
+	public boolean isUsingInterpolation() { return useInterpolation; }
+	public boolean isUsingAreaSampling () { return useAreaSampling ; }
 	
-	public void useInterpolation      (boolean useInterpolation) {
+	public void setUseInterpolation(boolean useInterpolation) {
 		this.useInterpolation = useInterpolation;
 		if (!this.useInterpolation) {
-			useBetterInterpolation = false;
-			betterScaling.clearResult();
+			useAreaSampling = false;
+			areaSampling.clearResult();
 		}
 		repaint();
 	}
 	
-	public void useBetterInterpolation(boolean useBetterInterpolation) {
-		this.useBetterInterpolation = useInterpolation && useBetterInterpolation;
-		updateBetterInterpolation();
+	public void setUseAreaSampling(boolean useAreaSampling) {
+		this.useAreaSampling = useInterpolation && useAreaSampling;
+		updateAreaSampling();
 		repaint();
-		//System.out.println("useBetterInterpolation: "+useBetterInterpolation);
+		//System.out.println("setUseAreaSampling: "+useAreaSampling);
 	}
 	
 	public void setImage(BufferedImage image) {
@@ -331,7 +329,7 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 		this.image = image;
 		if (resetView) reset();
 		else repaint();
-		updateBetterInterpolation();
+		updateAreaSampling();
 	}
 
 	public void setZoom(double zoom) {
@@ -412,8 +410,8 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 				Object interpolationValue = null;
 				if (useInterpolation && imageWidth<image.getWidth()) {
 					interpolationValue = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
-					if (useBetterInterpolation) {
-						BufferedImage scaledImage = betterScaling.getResult();
+					if (useAreaSampling) {
+						BufferedImage scaledImage = areaSampling.getResult();
 						if (scaledImage != null) {
 							drawImage(g2, scaledImage, true, viewRect, imageRect);
 							//g2.drawImage(scaledImage, imageX, imageY, null);
@@ -500,22 +498,22 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 			ImageViewContextMenu create(ImageView imageView, boolean withPredefinedInterpolationLevel, boolean isGrouped);
 		}
 		
-		private JCheckBoxMenuItem chkbxBetterInterpolation;
+		private JCheckBoxMenuItem chkbxAreaSampling;
 		private ImageView imageView;
 
 		protected ImageViewContextMenu(ImageView imageView, boolean withPredefinedInterpolationLevel, boolean isGrouped) {
 			this.imageView = imageView;
 			JCheckBoxMenuItem chkbxInterpolation = null;
 			if (!withPredefinedInterpolationLevel) {
-				chkbxBetterInterpolation = createCheckBoxMenuItem("Better Interpolation", imageView.useBetterInterpolation(), b -> {
-					imageView.useBetterInterpolation(b);
+				chkbxAreaSampling = createCheckBoxMenuItem("AreaSampling", imageView.isUsingAreaSampling(), b -> {
+					imageView.setUseAreaSampling(b);
 				});
-				chkbxInterpolation = createCheckBoxMenuItem("Interpolation", imageView.useInterpolation(), b -> {
-					imageView.useInterpolation(b);
-					chkbxBetterInterpolation.setEnabled(b);
+				chkbxInterpolation = createCheckBoxMenuItem("Interpolation", imageView.isUsingInterpolation(), b -> {
+					imageView.setUseInterpolation(b);
+					chkbxAreaSampling.setEnabled(b);
 				});
 			} else
-				chkbxBetterInterpolation = null;
+				chkbxAreaSampling = null;
 			
 			addElementsAtFirst();
 			
@@ -563,12 +561,12 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 				if (isGrouped) {
 					JMenu menu = new JMenu("Interpolation");
 					menu.add(chkbxInterpolation);
-					menu.add(chkbxBetterInterpolation);
+					menu.add(chkbxAreaSampling);
 					add(menu);
 				} else {
 					addSeparator();
 					add(chkbxInterpolation);
-					add(chkbxBetterInterpolation);
+					add(chkbxAreaSampling);
 				}
 			}
 			
@@ -608,8 +606,8 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 
 		@Override
 		public void show(Component invoker, int x, int y) {
-			if (chkbxBetterInterpolation!=null)
-				chkbxBetterInterpolation.setSelected(imageView.useBetterInterpolation());
+			if (chkbxAreaSampling!=null)
+				chkbxAreaSampling.setSelected(imageView.isUsingAreaSampling());
 			super.show(invoker, x, y);
 		}
 
