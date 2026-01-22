@@ -68,12 +68,13 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 	private final ImageViewContextMenu contextMenu;
 	private final Vector<DrawExtension> drawExtensions;
 	
-	public ImageView(                     int width, int height                                                                      ) { this(null , width, height, null              , false); }
-	public ImageView(BufferedImage image, int width, int height                                                                      ) { this(image, width, height, null              , false); }
-	public ImageView(                     int width, int height, InterpolationLevel interpolationLevel                               ) { this(null , width, height, interpolationLevel, false); }
-	public ImageView(                     int width, int height, InterpolationLevel interpolationLevel, boolean withGroupedContexMenu) { this(null , width, height, interpolationLevel, withGroupedContexMenu); }
-	public ImageView(BufferedImage image, int width, int height, InterpolationLevel interpolationLevel                               ) { this(image, width, height, interpolationLevel, false); }
-	public ImageView(BufferedImage image, int width, int height, InterpolationLevel interpolationLevel, boolean withGroupedContexMenu) {
+	public ImageView(                     int width, int height                                                                      ) { this(null , width, height, null              , false                , null); }
+	public ImageView(BufferedImage image, int width, int height                                                                      ) { this(image, width, height, null              , false                , null); }
+	public ImageView(                     int width, int height, InterpolationLevel interpolationLevel                               ) { this(null , width, height, interpolationLevel, false                , null); }
+	public ImageView(                     int width, int height, InterpolationLevel interpolationLevel, boolean withGroupedContexMenu) { this(null , width, height, interpolationLevel, withGroupedContexMenu, null); }
+	public ImageView(BufferedImage image, int width, int height, InterpolationLevel interpolationLevel                               ) { this(image, width, height, interpolationLevel, false                , null); }
+	public ImageView(BufferedImage image, int width, int height, InterpolationLevel interpolationLevel, boolean withGroupedContexMenu) { this(image, width, height, interpolationLevel, withGroupedContexMenu, null); }
+	public ImageView(BufferedImage image, int width, int height, InterpolationLevel interpolationLevel, boolean withGroupedContexMenu, ImageViewContextMenu.Constructor contextMenuConstructor) {
 		this.image = image;
 		bgColor = null;
 		bgPattern = null;
@@ -86,7 +87,9 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 		betterScaling = new BetterScaling(this::repaint);
 		addZoomListener(this::updateBetterInterpolation);
 		
-		contextMenu = new ImageViewContextMenu(this,interpolationLevel!=null, withGroupedContexMenu);
+		contextMenu = contextMenuConstructor==null
+				? new ImageViewContextMenu     (this, interpolationLevel!=null, withGroupedContexMenu)
+				: contextMenuConstructor.create(this, interpolationLevel!=null, withGroupedContexMenu);
 		contextMenu.addTo(this);
 		
 		drawExtensions = new Vector<>();
@@ -488,15 +491,22 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 		}
 	}
 	
-	private static class ImageViewContextMenu extends ContextMenu{
+	protected static class ImageViewContextMenu extends ContextMenu
+	{
 		private static final long serialVersionUID = 4090306246829034171L;
+		
+		public interface Constructor
+		{
+			ImageViewContextMenu create(ImageView imageView, boolean withPredefinedInterpolationLevel, boolean isGrouped);
+		}
+		
 		private JCheckBoxMenuItem chkbxBetterInterpolation;
 		private ImageView imageView;
 
-		public ImageViewContextMenu(ImageView imageView, boolean predefinedInterpolationLevel, boolean grouped) {
+		protected ImageViewContextMenu(ImageView imageView, boolean withPredefinedInterpolationLevel, boolean isGrouped) {
 			this.imageView = imageView;
 			JCheckBoxMenuItem chkbxInterpolation = null;
-			if (!predefinedInterpolationLevel) {
+			if (!withPredefinedInterpolationLevel) {
 				chkbxBetterInterpolation = createCheckBoxMenuItem("Better Interpolation", imageView.useBetterInterpolation(), b -> {
 					imageView.useBetterInterpolation(b);
 				});
@@ -507,8 +517,10 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 			} else
 				chkbxBetterInterpolation = null;
 			
+			addElementsAtFirst();
+			
 			MenuWrapper zoomMenu;
-			if (grouped) {
+			if (isGrouped) {
 				JMenu menu = new JMenu("Zoom");
 				add(menu);
 				zoomMenu = MenuWrapper.createFor(menu);
@@ -528,10 +540,10 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 			zoomMenu.add(createMenuItem("400%",e->imageView.setZoom(4.0f)));
 			zoomMenu.add(createMenuItem("600%",e->imageView.setZoom(6.0f)));
 			
-			if (!grouped) addSeparator();
+			if (!isGrouped) addSeparator();
 			
 			MenuWrapper bgMenu;
-			if (grouped) {
+			if (isGrouped) {
 				JMenu menu = new JMenu("Background");
 				add(menu);
 				bgMenu = MenuWrapper.createFor(menu);
@@ -547,8 +559,8 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 			bgMenu.add(createSetBgColorMenuItem(imageView, Color.GREEN  , "Set Background to Green"));
 			bgMenu.add(createSetBgColorMenuItem(imageView, null         , "Remove Background"));
 			
-			if (!predefinedInterpolationLevel) {
-				if (grouped) {
+			if (!withPredefinedInterpolationLevel) {
+				if (isGrouped) {
 					JMenu menu = new JMenu("Interpolation");
 					menu.add(chkbxInterpolation);
 					menu.add(chkbxBetterInterpolation);
@@ -560,19 +572,23 @@ public class ImageView extends ZoomableCanvas<ImageView.ViewState> {
 				}
 			}
 			
-			if (!grouped) addSeparator();
+			if (!isGrouped) addSeparator();
 			JMenuItem miCopyImage = add(createMenuItem("Copy Image to Clipboard", e->{
 				ClipboardTools.copyToClipBoard( imageView.image );
 			}));
 			
-			if (!grouped) addSeparator();
+			if (!isGrouped) addSeparator();
 			add(createMenuItem("Reset View",e->imageView.reset()));
 			
 			addContextMenuInvokeListener((comp,x,y) -> {
 				miCopyImage.setEnabled( imageView.image!=null );
+				updateBeforeInvokeContextMenu(comp,x,y);
 			});
 		}
-		
+
+		protected void addElementsAtFirst() {}
+		protected void updateBeforeInvokeContextMenu(Component comp, int x, int y) {}
+
 		interface MenuWrapper {
 			JMenuItem add(JMenuItem mi);
 			void addSeparator();
