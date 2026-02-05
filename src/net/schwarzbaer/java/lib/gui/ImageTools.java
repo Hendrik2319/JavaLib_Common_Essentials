@@ -2,11 +2,46 @@ package net.schwarzbaer.java.lib.gui;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.function.IntUnaryOperator;
 
 public class ImageTools
 {
+	public static BufferedImage rotate90_clockwise(BufferedImage image)
+	{
+		int width = image.getWidth();
+		int height = image.getHeight();
+		AffineTransform transform = AffineTransform.getQuadrantRotateInstance(1);
+		transform.translate(0, -height);
+		return createTransformImage(image, height, width, transform);
+	}
+	
+	public static BufferedImage rotate90_counterclockwise(BufferedImage image)
+	{
+		int width = image.getWidth();
+		int height = image.getHeight();
+		AffineTransform transform = AffineTransform.getQuadrantRotateInstance(-1);
+		transform.translate(-width, 0);
+		return createTransformImage(image, height, width, transform);
+	}
+
+	public static BufferedImage rotate180(BufferedImage image)
+	{
+		int width = image.getWidth();
+		int height = image.getHeight();
+		AffineTransform transform = AffineTransform.getQuadrantRotateInstance(2);
+		transform.translate(-width, -height);
+		return createTransformImage(image, width, height, transform);
+	}
+
+	private static BufferedImage createTransformImage(BufferedImage image, int width, int height, AffineTransform transform)
+	{
+		BufferedImage resultImage = new BufferedImage(width,height,image.getType());
+		resultImage.createGraphics().drawImage(image, transform, null);
+		return resultImage;
+	}
+
 	public static BufferedImage convert(BufferedImage image, IntUnaryOperator rgbConverter)
 	{
 		int width = image.getWidth();
