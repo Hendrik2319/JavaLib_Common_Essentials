@@ -2455,9 +2455,9 @@ public class Tables {
 			
 			addContextMenuInvokeListener((comp, x, y) -> {
 				Point point = new Point(x,y);
-				int columnV = this.table.columnAtPoint(point);
+				int columnV = comp!=this.table ? -1 : this.table.columnAtPoint(point);
 				int columnM = columnV<0 ? -1 : this.table.convertColumnIndexToModel(columnV);
-				int rowV = this.table.rowAtPoint(point);
+				int rowV = comp!=this.table ? -1 : this.table.rowAtPoint(point);
 				int rowM = rowV<0 ? -1 : this.table.convertRowIndexToModel(rowV);
 				clickedRowIndex = rowM;
 				clickedRow = rowM<0 ? null : this.tableModel.getRow(rowM);
