@@ -31,7 +31,7 @@ public class ContextMenu extends JPopupMenu {
 	public void addTo(Component comp, Supplier<Point> computeSurrogateMousePosWhenContextMenuKeyWasPressed) {
 		comp.addMouseListener(new MouseAdapter() {
 			@Override public void mouseClicked(MouseEvent e) {
-				if (e.getButton()==MouseEvent.BUTTON3)
+				if (e.getButton()==MouseEvent.BUTTON3 && comp.isEnabled())
 					showMenu(comp, e.getX(), e.getY());
 			}
 		});
@@ -39,6 +39,7 @@ public class ContextMenu extends JPopupMenu {
 			comp.addKeyListener(new KeyAdapter() {
 				@Override public void keyPressed(KeyEvent e) {
 					if (e.getExtendedKeyCode() != KeyEvent.VK_CONTEXT_MENU) return;
+					if (!comp.isEnabled()) return;
 					Point surrogateMousePos = computeSurrogateMousePosWhenContextMenuKeyWasPressed.get();
 					if (surrogateMousePos==null) return;
 					e.consume();
