@@ -60,13 +60,16 @@ public final class GlobalSettings extends Settings<GlobalSettings.ValueGroup, Gl
 	}
 	
 	public File askUserForExecutable(Component parent, String dialogTitle, Key key) {
+		File currentValue = getExecutable(key);
+		if (currentValue!=null && currentValue.isFile())
+			exeFileChooser.setSelectedFile(currentValue);
 		exeFileChooser.setDialogTitle(dialogTitle);
-	
-		File executable = null;
-		if (exeFileChooser.showOpenDialog(parent)==JFileChooser.APPROVE_OPTION) {
-			executable = exeFileChooser.getSelectedFile();
-			putFile(key, executable);
-		}
-		return executable;
+		
+		if (exeFileChooser.showOpenDialog(parent) != JFileChooser.APPROVE_OPTION)
+			return null;
+		
+		File selectedValue = exeFileChooser.getSelectedFile();
+		putFile(key, selectedValue);
+		return selectedValue;
 	}
 }
