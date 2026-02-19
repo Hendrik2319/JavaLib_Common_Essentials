@@ -1698,7 +1698,7 @@ public class Tables {
 	public static abstract class CustomRendererComponent extends JComponent {
 		private static final long serialVersionUID = 5260432058949480247L;
 		
-		private final RendererConfigurator rendConf;
+		protected RendererConfigurator rendConf;
 		
 		public CustomRendererComponent() {
 			rendConf = RendererConfigurator.create(this);
@@ -1719,7 +1719,13 @@ public class Tables {
 		}
 
 		@Override
-		protected abstract void paintComponent(Graphics g);
+		protected void paintComponent(Graphics g)
+		{
+			super.paintComponent(g);
+			paintContent(g);
+		}
+		
+		protected abstract void paintContent(Graphics g);
 
 		@Override public void revalidate() {}
 		@Override public void invalidate() {}
