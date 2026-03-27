@@ -1317,58 +1317,69 @@ public class Tables {
 		}
 	}
 
-	public interface RendererConfigurator {
-		static final Border EMPTY_BORDER  = BorderFactory.createEmptyBorder(1,1,1,1);
-		static final Border DASHED_BORDER = BorderFactory.createDashedBorder(Color.BLACK);
+	public static abstract class RendererConfigurator {
+		private static final Border EMPTY_BORDER  = BorderFactory.createEmptyBorder(1,1,1,1);
+		private static final Border DASHED_BORDER = BorderFactory.createDashedBorder(Color.BLACK);
 		
-		default void configureAsTableCRC(JTable table, boolean isSelected, boolean hasFocus) {
+		public boolean isSelected = false;
+		public boolean hasFocus = false;
+		public Font font = null;
+		public Color bgColor = null;
+		public Color textColor = null;
+		
+		public void configureAsTableCRC(JTable table, boolean isSelected, boolean hasFocus) {
 			configureAsTableCRC(table, isSelected, hasFocus, null, null);
 		}
-		default void configureAsTableCRC(JTable table, boolean isSelected, boolean hasFocus, Supplier<Color> getCustomForeground, Supplier<Color> getCustomBackground) {
-			setFont(table.getFont());
+		public void configureAsTableCRC(JTable table, boolean isSelected, boolean hasFocus, Supplier<Color> getCustomForeground, Supplier<Color> getCustomBackground) {
+			this.isSelected = isSelected;
+			this.hasFocus = hasFocus;
+			setFont(font = table.getFont());
 			setBorder(hasFocus ? DASHED_BORDER : EMPTY_BORDER);
 			setOpaque(true);
 			if (isSelected) {
-				setBackground(table.getSelectionBackground());
-				setForeground(table.getSelectionForeground());
+				setBackground(bgColor   = table.getSelectionBackground());
+				setForeground(textColor = table.getSelectionForeground());
 			} else {
 				Color background = getCustomBackground==null ? null : getCustomBackground.get();
 				Color foreground = getCustomForeground==null ? null : getCustomForeground.get();
-				setBackground(background==null ? table.getBackground() : background);
-				setForeground(foreground==null ? table.getForeground() : foreground);
+				setBackground(bgColor   = background==null ? table.getBackground() : background);
+				setForeground(textColor = foreground==null ? table.getForeground() : foreground);
 			}
 		}
-		default void configureAsListCRC(JList<?> list, int index, boolean isSelected, boolean hasFocus) {
+		public void configureAsListCRC(JList<?> list, int index, boolean isSelected, boolean hasFocus) {
 			configureAsListCRC(list, index, isSelected, hasFocus, null, null);
 		}
-		default void configureAsListCRC(JList<?> list, int index, boolean isSelected, boolean hasFocus, Supplier<Color> getCustomForeground, Supplier<Color> getCustomBackground) {
-			setFont(list.getFont());
+		public void configureAsListCRC(JList<?> list, int index, boolean isSelected, boolean hasFocus, Supplier<Color> getCustomForeground, Supplier<Color> getCustomBackground) {
+			this.isSelected = isSelected;
+			this.hasFocus = hasFocus;
+			setFont(font = list.getFont());
 			if (index<0) {
 				setOpaque(false);
-				setForeground(list.getForeground());
+				bgColor = null;
+				setForeground(textColor = list.getForeground());
 				setBorder(isSelected ? DASHED_BORDER : EMPTY_BORDER);
 			} else {
 				setBorder(hasFocus ? DASHED_BORDER : EMPTY_BORDER);
 				setOpaque(true);
 				if (isSelected) {
-					setBackground(list.getSelectionBackground());
-					setForeground(list.getSelectionForeground());
+					setBackground(bgColor   = list.getSelectionBackground());
+					setForeground(textColor = list.getSelectionForeground());
 				} else {
 					Color background = getCustomBackground==null ? null : getCustomBackground.get();
 					Color foreground = getCustomForeground==null ? null : getCustomForeground.get();
-					setBackground(background==null ? list.getBackground() : background);
-					setForeground(foreground==null ? list.getForeground() : foreground);
+					setBackground(bgColor   = background==null ? list.getBackground() : background);
+					setForeground(textColor = foreground==null ? list.getForeground() : foreground);
 				}
 			}
 		}
 	
-		void setFont(Font font);
-		void setBorder(Border border);
-		void setOpaque(boolean isOpaque);
-		void setForeground(Color color);
-		void setBackground(Color color);
+		protected abstract void setFont(Font font);
+		protected abstract void setBorder(Border border);
+		protected abstract void setOpaque(boolean isOpaque);
+		protected abstract void setForeground(Color color);
+		protected abstract void setBackground(Color color);
 		
-		static RendererConfigurator create(JComponent rendererComp) {
+		public static RendererConfigurator create(JComponent rendererComp) {
 			return new RendererConfigurator() {
 				@Override public void setFont      (Font    font    ) { rendererComp.setFont      (font    ); }
 				@Override public void setBorder    (Border  border  ) { rendererComp.setBorder    (border  ); }
@@ -1377,7 +1388,7 @@ public class Tables {
 				@Override public void setBackground(Color   color   ) { rendererComp.setBackground(color   ); }
 			};
 		}
-		static RendererConfigurator create(Consumer<Font> setFont, Consumer<Border> setBorder, Consumer<Boolean> setOpaque, Consumer<Color> setForeground, Consumer<Color> setBackground) {
+		public static RendererConfigurator create(Consumer<Font> setFont, Consumer<Border> setBorder, Consumer<Boolean> setOpaque, Consumer<Color> setForeground, Consumer<Color> setBackground) {
 			return new RendererConfigurator() {
 				@Override public void setFont      (Font    font    ) { setFont      .accept(font    ); }
 				@Override public void setBorder    (Border  border  ) { setBorder    .accept(border  ); }
