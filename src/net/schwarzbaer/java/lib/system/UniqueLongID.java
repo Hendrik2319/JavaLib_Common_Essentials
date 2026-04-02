@@ -3,21 +3,14 @@ package net.schwarzbaer.java.lib.system;
 import java.util.HashSet;
 import java.util.Random;
 
-public class UniqueIdPool {
+public class UniqueLongID {
 	
 	public final static long NO_ID = -1;
-	
-	static UniqueIdPool instance = null;
-	static UniqueIdPool getInstance() {
-		if (instance==null)
-			instance = new UniqueIdPool();
-		return instance;
-	}
 
 	private HashSet<Long> pool;
 	private Random rnd;
 	
-	public UniqueIdPool() {
+	public UniqueLongID() {
 		pool = new HashSet<>();
 		rnd = new Random();
 	}
