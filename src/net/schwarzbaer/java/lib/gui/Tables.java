@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EventObject;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -514,6 +515,30 @@ public class Tables {
 			this.toStringR = toStringR;
 		}
 		
+		private static <V1,V2> V2 getIfNotNull(V1 value, Function<V1,V2> getValue)
+		{
+			return value==null ? null : getValue.apply(value);
+		}
+		
+		public <InterType>
+			SimplifiedColumnConfig2<TableModelType, RowType, CellType>
+			setValFunc(
+					Function<RowType, InterType> getValue1,
+					Function<InterType, CellType> getValue2
+		) {
+			return setValFunc( row -> getIfNotNull( getValue1.apply(row), getValue2 ) );
+		}
+		
+		public <InterType1,InterType2>
+			SimplifiedColumnConfig2<TableModelType, RowType, CellType>
+			setValFunc(
+					Function<RowType, InterType1> getValue1,
+					Function<InterType1, InterType2> getValue2,
+					Function<InterType2, CellType> getValue3
+		) {
+			return setValFunc( row -> getIfNotNull( getIfNotNull( getValue1.apply(row), getValue2 ), getValue3 ) );
+		}
+		
 		public SimplifiedColumnConfig2<TableModelType, RowType, CellType> setValFunc(Function<RowType, CellType> getValue)
 		{
 			return new SimplifiedColumnConfig2<>(
@@ -807,7 +832,7 @@ public class Tables {
 			return Arrays.toString(widths)+" in ModelOrder";
 		}
 	
-		private static void setColumnWidth(SimplifiedColumnConfig config, TableColumn column)
+		public static void setColumnWidth(SimplifiedColumnConfig config, TableColumn column)
 		{
 			int min       = config.minWidth;
 			int max       = config.maxWidth;
@@ -2136,11 +2161,13 @@ public class Tables {
 		}
 	}
 	
-	public interface DataSource<ValueType>
+	public interface DataSource<ValueType> extends Iterable<ValueType>
 	{
 		int size();
 		ValueType get(int index);
 		int indexOf(ValueType value);
+		void forEach(BiConsumer<Integer,ValueType> action);
+		boolean swapRows(int index1, int index2);
 		
 		public static <ValueType> DataSource<ValueType> createFrom(List<ValueType> list)
 		{
@@ -2164,6 +2191,34 @@ public class Tables {
 				public int indexOf(ValueType value)
 				{
 					return list==null ? -1 : list.indexOf(value);
+				}
+
+				@Override
+				public void forEach(BiConsumer<Integer, ValueType> action)
+				{
+					if (list!=null)
+						for (int i=0; i<list.size(); i++)
+							action.accept(i, list.get(i));
+				}
+
+				@Override
+				public Iterator<ValueType> iterator()
+				{
+					return list!=null ? list.iterator() : new Iterator<>() {
+						@Override public boolean hasNext() { return false; }
+						@Override public ValueType  next() { return null; }
+					};
+				}
+
+				@Override
+				public boolean swapRows(int index1, int index2)
+				{
+					if (list==null) return false;
+					if (index1<0 || index1>=list.size()) return false;
+					if (index2<0 || index2>=list.size()) return false;
+					
+					list.set( index1, list.set( index2, list.get( index1 ) ) );
+					return true;
 				}
 			};
 		}
@@ -2191,6 +2246,37 @@ public class Tables {
 							if (array[i]==value)
 								return i;
 					return -1;
+				}
+
+				@Override
+				public void forEach(BiConsumer<Integer, ValueType> action)
+				{
+					if (array!=null)
+						for (int i=0; i<array.length; i++)
+							action.accept(i, array[i]);
+				}
+
+				@Override
+				public Iterator<ValueType> iterator()
+				{
+					return new Iterator<>() {
+						int index = 0;
+						@Override public boolean hasNext() { return array!=null && index<array.length; }
+						@Override public ValueType  next() { return array!=null ? array[index++] : null; }
+					};
+				}
+
+				@Override
+				public boolean swapRows(int index1, int index2)
+				{
+					if (array==null) return false;
+					if (index1<0 || index1>=array.length) return false;
+					if (index2<0 || index2>=array.length) return false;
+					
+					ValueType temp = array[index1];
+					array[index1] = array[index2];
+					array[index2] = temp;
+					return true;
 				}
 			};
 		}
