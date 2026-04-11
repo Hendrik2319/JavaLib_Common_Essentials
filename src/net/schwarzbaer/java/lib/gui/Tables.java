@@ -2421,6 +2421,10 @@ public class Tables {
 		public void setBackgroundColorizer(Colorizer        <ValueType, ColumnIDType> colorizer) { this.backgroundColorizer = colorizer; }
 		public void setCombinedColorizer  (CombinedColorizer<ValueType, ColumnIDType> colorizer) { this.  combinedColorizer = colorizer; }
 		
+		public Colorizer        <ValueType, ColumnIDType> getTextColorizer      () { return       textColorizer; }
+		public Colorizer        <ValueType, ColumnIDType> getBackgroundColorizer() { return backgroundColorizer; }
+		public CombinedColorizer<ValueType, ColumnIDType> getCombinedColorizer  () { return   combinedColorizer; }
+		
 		private ColorPair getColor(Object value, int rowM, int columnM, ColumnIDType columnID, ValueType row)
 		{
 			if (combinedColorizer!=null)
