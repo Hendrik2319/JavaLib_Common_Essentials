@@ -16,10 +16,12 @@ import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Vector;
 import java.util.function.BiConsumer;
@@ -711,6 +713,11 @@ public class Tables {
 		}
 		
 		public void forEachColumClass(Consumer<Class<?>> action) {
+			forEachColumClass(columns, action);
+		}
+
+		public static <ColumnID extends SimplifiedColumnIDInterface> void forEachColumClass(ColumnID[] columns, Consumer<Class<?>> action)
+		{
 			HashSet<Class<?>> classes = new HashSet<>();
 			for (ColumnID columnID:columns)
 				classes.add(columnID.getColumnConfig().columnClass);
@@ -2390,6 +2397,8 @@ public class Tables {
 		private SpecialModifier<   ColorRendererComponent, ValueType, ColumnIDType>    colorRCModifier;
 		private SpecialModifier<CheckBoxRendererComponent, ValueType, ColumnIDType> checkBoxRCModifier;
 		private SpecialModifier<   LabelRendererComponent, ValueType, ColumnIDType>    labelRCModifier;
+		private final Map<ColumnIDType,ExtraRenderer<ValueType, ColumnIDType>> extraRenderersByColumnID;
+		private final Map<Class<?>    ,ExtraRenderer<ValueType, ColumnIDType>> extraRenderersByColumnClass;
 		
 		public GeneralizedTableCellRenderer2(Class<TableModelType> tableModelClass)
 		{
@@ -2403,6 +2412,21 @@ public class Tables {
 			   colorRCModifier = null;
 			checkBoxRCModifier = null;
 			   labelRCModifier = null;
+			extraRenderersByColumnID    = new HashMap<>();
+			extraRenderersByColumnClass = new HashMap<>();
+		}
+		
+		public interface ExtraRenderer<ValueType, ColumnIDType>
+		{
+			Component getTableCellRendererComponent(JTable table, Object value, ValueType row, int rowM, int columnM, ColumnIDType columnID, boolean isSelected, boolean hasFocus, Supplier<Color> getCustomBackground, Supplier<Color> getCustomForeground);
+		}
+		public void setExtraRenderer(ColumnIDType columnID, ExtraRenderer<ValueType, ColumnIDType> extraRenderer)
+		{
+			extraRenderersByColumnID.put(columnID, extraRenderer);
+		}
+		public void setExtraRenderer(Class<?> columnClass, ExtraRenderer<ValueType, ColumnIDType> extraRenderer)
+		{
+			extraRenderersByColumnClass.put(columnClass, extraRenderer);
 		}
 		
 		public record ColorPair(Color textColor, Color backgroundColor) {}
@@ -2492,7 +2516,17 @@ public class Tables {
 					if (colors.backgroundColor!=null) getCustomBackground = () -> colors.backgroundColor;
 				}
 				
-				if ( (columnClass==Color.class && value instanceof Color) || (columnClass==Color[].class && value instanceof Color[]))
+				if (extraRenderersByColumnID.containsKey(columnID))
+				{
+					ExtraRenderer<ValueType, ColumnIDType> extraRenderer = extraRenderersByColumnID.get(columnID);
+					rendComp = extraRenderer.getTableCellRendererComponent(table, value, row, rowM, columnM, columnID, isSelected, hasFocus, getCustomBackground, getCustomForeground);
+				}
+				else if (extraRenderersByColumnClass.containsKey(columnClass))
+				{
+					ExtraRenderer<ValueType, ColumnIDType> extraRenderer = extraRenderersByColumnClass.get(columnClass);
+					rendComp = extraRenderer.getTableCellRendererComponent(table, value, row, rowM, columnM, columnID, isSelected, hasFocus, getCustomBackground, getCustomForeground);
+				}
+				else if ( (columnClass==Color.class && value instanceof Color) || (columnClass==Color[].class && value instanceof Color[]))
 				{
 					rendComp = rendCompColor;
 					rendCompColor.configureAsTableCellRendererComponent(table, value, isSelected, hasFocus, null, getCustomBackground, getCustomForeground);
