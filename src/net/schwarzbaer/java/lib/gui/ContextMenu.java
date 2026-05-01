@@ -49,6 +49,13 @@ public class ContextMenu extends JPopupMenu {
 		}
 	}
 	
+	public static Point computeSurrogateMousePos(JScrollPane scrollPane, int xDeltaToLeft, int yDeltaToTop)
+	{
+		Point position = scrollPane.getViewport().getViewPosition();
+		position.translate(xDeltaToLeft, yDeltaToTop);
+		return position;
+	}
+	
 	public static Point computeSurrogateMousePos(JTable table, JScrollPane tableScrollPane, int columnM)
 	{
 		int[] rows = table.getSelectedRows();
