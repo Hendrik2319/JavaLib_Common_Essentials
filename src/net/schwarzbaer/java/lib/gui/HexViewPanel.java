@@ -3,16 +3,21 @@ package net.schwarzbaer.java.lib.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog.ModalityType;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.function.Consumer;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -33,6 +38,7 @@ public class HexViewPanel extends JPanel
 	private final JComboBox<Page> cmbbxPages;
 	private final JButton btnPrevPage;
 	private final JButton btnNextPage;
+	private final JButton btnGotoPos;
 	private final JTextField txtfldPageSize;
 
 	private byte[] bytes;
@@ -92,6 +98,8 @@ public class HexViewPanel extends JPanel
 		else
 			txtfldPageSize = null;
 		
+		c.gridx++; controlPanel.add(btnGotoPos = createButton("Go to", false, e -> gotoPos()), c);
+		
 		c.weightx = 1;
 		c.gridx++; controlPanel.add(new JLabel(), c);
 		
@@ -101,6 +109,58 @@ public class HexViewPanel extends JPanel
 		
 		add(new JScrollPane(textPane), BorderLayout.CENTER);
 		add(controlPanel, BorderLayout.NORTH);
+	}
+	
+	private void gotoPos()
+	{
+		Integer pos = getPos();
+		if (pos!=null && 0<=pos.intValue())
+		{
+			setPage(pos/(pageSize*LINE_LENGTH), false);
+			updatePageCombobox();
+		}
+	}
+	private Integer getPos()
+	{
+		String title = "Enter Target Position";
+		Object msg = "Enter Target Position: ";
+		
+		while (true)
+		{
+			String str = JOptionPane.showInputDialog(this, msg, title, JOptionPane.QUESTION_MESSAGE);
+			if (str==null) return null;
+			
+			str = str.trim();
+			
+			if (str.startsWith("0x"))
+				try { return Integer.parseInt(str.substring(2), 16); }
+				catch (NumberFormatException e) {}
+			else
+				try { return Integer.parseInt(str); }
+				catch (NumberFormatException e) {}
+		}
+	}
+	
+	public static void showAsDialog(Window window, String title, HexViewPanel panel, byte[] bytes)
+	{
+		showAsDialog(window, title, panel, bytes, null, ModalityType.APPLICATION_MODAL);
+	}
+	public static void showAsDialog(Window window, String title, HexViewPanel panel, byte[] bytes, Consumer<JDialog> configureDialog)
+	{
+		showAsDialog(window, title, panel, bytes, configureDialog, ModalityType.APPLICATION_MODAL);
+	}
+	public static void showAsDialog(Window window, String title, HexViewPanel panel, byte[] bytes, ModalityType modalityType)
+	{
+		showAsDialog(window, title, panel, bytes, null, modalityType);
+	}
+	public static void showAsDialog(Window window, String title, HexViewPanel panel, byte[] bytes, Consumer<JDialog> configureDialog, ModalityType modalityType)
+	{
+		JDialog dlg = new JDialog(window, title, modalityType);
+		dlg.setContentPane(panel);
+		panel.setData(bytes);
+		if (configureDialog!=null)
+			configureDialog.accept(dlg);
+		dlg.setVisible(true);
 	}
 
 	private static JButton createButton(String title, boolean enabled, ActionListener al)
@@ -146,6 +206,7 @@ public class HexViewPanel extends JPanel
 	{
 		this.bytes = bytes;
 		setPageSize(pageSize);
+		btnGotoPos.setEnabled(true);
 	}
 
 	private void setPageSize(int n)
@@ -186,6 +247,9 @@ public class HexViewPanel extends JPanel
 	private static final int EXTRACHARS_AT_HALF_LINE = 1;
 	private static final int CHARS_IN_LINE = 8+2 + LINE_LENGTH*CHARS_PER_BYTE+EXTRACHARS_AT_HALF_LINE + 5+LINE_LENGTH +2;
 	private static final int FIRST_BYTE_POS_IN_LINE = 8+2 + 1;
+	public  static final int PREFFERED_WIDTH  = 600;
+	public  static final int PREFFERED_HEIGHT = 900;
+	public  static final int PREFFERED_PAGESIZE = 48;
 	
 	private void rebuildPage()
 	{
