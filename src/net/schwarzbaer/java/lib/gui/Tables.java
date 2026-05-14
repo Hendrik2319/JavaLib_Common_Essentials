@@ -2381,6 +2381,103 @@ public class Tables {
 		}
 	}
 	
+	public static class GetValueConverter<TargetRowType, TargetModelType, SourceRowType, SourceModelType>
+	{
+		private final Class<TargetRowType> rowClass;
+		private final Class<TargetModelType> modelClass;
+	
+		public GetValueConverter(Class<TargetRowType> rowClass, Class<TargetModelType> modelClass)
+		{
+			this.rowClass   = Objects.requireNonNull( rowClass   );
+			this.modelClass = Objects.requireNonNull( modelClass );
+		}
+		
+		public <ValueType>
+		BiFunction<SourceRowType,SourceModelType,ValueType> get(
+				BiFunction<TargetModelType, TargetRowType, ValueType> getValue
+		) {
+			return (obj,model0) -> castRowAndModel(model0, obj, getValue);
+		}
+		
+		public <ValueType>
+		ValueType castRowAndModel(
+				SourceModelType model0,
+				SourceRowType obj,
+				BiFunction<TargetModelType,TargetRowType,ValueType> getValue
+		) {
+			if (!rowClass  .isInstance(obj   )) return null;
+			if (!modelClass.isInstance(model0)) return null;
+			TargetRowType   row   = rowClass  .cast(obj   );
+			TargetModelType model = modelClass.cast(model0);
+			return getValue.apply(model, row);
+		}
+		
+		public Function<SourceRowType,String> get(
+				Function<TargetRowType, Boolean> getValue,
+				String trueStr, String falseStr
+		) {
+			return obj -> bool2string(getRowValue(obj, getValue), trueStr, falseStr);
+		}
+		
+		public <ValueType>
+		Function<SourceRowType,ValueType> get(
+				Function<TargetRowType, ValueType> getValue
+		) {
+			return obj -> getRowValue(obj, getValue);
+		}
+	
+		public <InterValueType, ValueType>
+		Function<SourceRowType,ValueType> get(
+				Function<TargetRowType       , InterValueType> getValue1,
+				Function<InterValueType, ValueType     > getValue2
+		) {
+			return obj -> getIfNotNull(getRowValue(obj, getValue1), getValue2);
+		}
+		
+		public <InterValueType1, InterValueType2, ValueType>
+		Function<SourceRowType,ValueType> get(
+				Function<TargetRowType        , InterValueType1> getValue1,
+				Function<InterValueType1, InterValueType2> getValue2,
+				Function<InterValueType2, ValueType      > getValue3
+		) {
+			return obj -> getIfNotNull(getIfNotNull(getRowValue(obj, getValue1), getValue2), getValue3);
+		}
+		
+		public <InterValueType1, InterValueType2, InterValueType3, ValueType>
+		Function<SourceRowType,ValueType> get(
+				Function<TargetRowType        , InterValueType1> getValue1,
+				Function<InterValueType1, InterValueType2> getValue2,
+				Function<InterValueType2, InterValueType3> getValue3,
+				Function<InterValueType3, ValueType      > getValue4
+		) {
+			return obj -> getIfNotNull(getIfNotNull(getIfNotNull(getRowValue(obj, getValue1), getValue2), getValue3), getValue4);
+		}
+		
+		public <InterValueType>
+		Function<SourceRowType,String> get(
+				Function<TargetRowType       , InterValueType> getValue1,
+				Function<InterValueType, Boolean       > getValue2,
+				String trueStr, String falseStr
+		) {
+			return obj -> bool2string(getIfNotNull(getRowValue(obj, getValue1), getValue2), trueStr, falseStr);
+		}
+
+		public static String bool2string(Boolean value, String trueStr, String falseStr)
+		{
+			return value==null ? null : value.booleanValue() ? trueStr : falseStr;
+		}
+		
+		public static <Type1, Type2> Type2 getIfNotNull(Type1 value, Function<Type1, Type2> getValue)
+		{
+			return value==null ? null : getValue.apply(value);
+		}
+	
+		public <ValueType> ValueType getRowValue(Object rowObj, Function<TargetRowType, ValueType> getValue)
+		{
+			return rowClass.isInstance(rowObj) ? getValue.apply( rowClass.cast(rowObj) ) : null;
+		}
+	}
+	
 	public static class GeneralizedTableCellRenderer2<
 			ValueType,
 			ColumnIDType   extends SimpleGetValueTableModel2.ColumnIDTypeInt2b<TableModelType, ValueType>,
