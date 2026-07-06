@@ -17,6 +17,11 @@ public class UniqueStringID
 		charArr = new String[length];
 	}
 	
+	public void clear()
+	{
+		knownIDs.clear();
+	}
+
 	public String createNew()
 	{
 		String newID = null;
@@ -42,7 +47,7 @@ public class UniqueStringID
 		knownIDs.add(id);
 	}
 	
-	class UniqueIDException extends Exception
+	public class UniqueIDException extends Exception
 	{
 		private static final long serialVersionUID = 5645187579709944735L;
 
