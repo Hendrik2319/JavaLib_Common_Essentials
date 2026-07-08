@@ -47,6 +47,11 @@ public class UniqueStringID
 		knownIDs.add(id);
 	}
 	
+	public void removeKnownID(String id)
+	{
+		knownIDs.remove(id);
+	}
+
 	public class UniqueIDException extends Exception
 	{
 		private static final long serialVersionUID = 5645187579709944735L;

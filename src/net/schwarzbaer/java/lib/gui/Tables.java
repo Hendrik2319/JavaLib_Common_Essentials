@@ -1152,7 +1152,7 @@ public class Tables {
 			void setPos(int rowM, int columnM, Object currentValue);
 		}
 
-		private Object currentValue;
+		protected Object currentValue;
 		protected Vector<T> valueVector;
 		protected T[] valueArray;
 		private ListCellRenderer<? super T> renderer;
@@ -1262,15 +1262,17 @@ public class Tables {
 				}
 				cmbbx.setSelectedItem(currentValue);
 				cmbbx.setBackground(isSelected?table.getSelectionBackground():table.getBackground());
-				cmbbx.addActionListener(e->{
-					currentValue = cmbbx.getSelectedItem();
-					fireEditingStopped();
-				});
+				cmbbx.addActionListener(e->onCmbbxAction(cmbbx));
 			}
 			
 			return cmbbx;
 		}
 		
+		protected void onCmbbxAction(JComboBox<T> cmbbx)
+		{
+			currentValue = cmbbx.getSelectedItem();
+			fireEditingStopped();
+		}
 	}
 	
 	public static abstract class IconTextRenderer<T> implements ListCellRenderer<T>, TableCellRenderer {
