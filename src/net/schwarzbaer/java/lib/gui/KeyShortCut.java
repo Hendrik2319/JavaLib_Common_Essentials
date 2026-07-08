@@ -76,6 +76,25 @@ public record KeyShortCut(
 		return null;
 	}
 	
+	public boolean is(KeyEvent e)
+	{
+		return is(e.getKeyCode(), e.getModifiersEx());
+	}
+	
+	public boolean is(int keyCode, int modifiersEx)
+	{
+		boolean withShift = (modifiersEx & KeyEvent.SHIFT_DOWN_MASK    ) != 0;
+		boolean withCtrl  = (modifiersEx & KeyEvent.CTRL_DOWN_MASK     ) != 0;
+		boolean withAlt   = (modifiersEx & KeyEvent.ALT_DOWN_MASK      ) != 0;
+		boolean withAltGr = (modifiersEx & KeyEvent.ALT_GRAPH_DOWN_MASK) != 0;
+		return 
+			 (this.keyCode   == keyCode  ) &&
+			 (this.withShift == withShift) &&
+			 (this.withCtrl  == withCtrl ) &&
+			 (this.withAlt   == withAlt  ) &&
+			 (this.withAltGr == withAltGr);
+	}
+	
 	public String addKeyLabel(String baseStr)
 	{
 		return "%s (%s)".formatted(baseStr, keyLabel);
