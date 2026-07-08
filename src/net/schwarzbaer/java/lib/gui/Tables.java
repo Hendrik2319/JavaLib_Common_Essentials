@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.HierarchyBoundsListener;
@@ -35,6 +36,7 @@ import java.util.function.Supplier;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -2642,6 +2644,16 @@ public class Tables {
 					
 					if (checkBoxRCModifier!=null)
 						checkBoxRCModifier.changeRenderComp(rendCompCheckBox, value, rowM, columnM, columnID, row);
+				}
+				else if (columnClass!=null && Icon.class.isAssignableFrom(columnClass) && value instanceof Icon icon)
+				{
+					rendComp = rendCompLabel;
+					rendCompLabel.configureAsTableCellRendererComponent(table, icon, null, isSelected, hasFocus, getCustomBackground, getCustomForeground);
+				}
+				else if (columnClass!=null && Image.class.isAssignableFrom(columnClass) && value instanceof Image image)
+				{
+					rendComp = rendCompLabel;
+					rendCompLabel.configureAsTableCellRendererComponent(table, new ImageIcon(image), null, isSelected, hasFocus, getCustomBackground, getCustomForeground);
 				}
 				else
 				{
