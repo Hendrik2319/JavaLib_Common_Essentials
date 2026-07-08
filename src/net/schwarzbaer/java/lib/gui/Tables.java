@@ -70,7 +70,8 @@ import javax.swing.table.TableModel;
 
 import net.schwarzbaer.java.lib.system.TriConsumer;
 
-public class Tables {
+public class Tables
+{
 	
 	public static int[] convertRowIndexesToModel(JTable table, int[] rowsV)
 	{
@@ -2649,11 +2650,15 @@ public class Tables {
 				{
 					rendComp = rendCompLabel;
 					rendCompLabel.configureAsTableCellRendererComponent(table, icon, null, isSelected, hasFocus, getCustomBackground, getCustomForeground);
+					if (columnCfg!=null)
+						rendCompLabel.setHorizontalAlignment(columnCfg.horizontalAlignment);
 				}
 				else if (columnClass!=null && Image.class.isAssignableFrom(columnClass) && value instanceof Image image)
 				{
 					rendComp = rendCompLabel;
 					rendCompLabel.configureAsTableCellRendererComponent(table, new ImageIcon(image), null, isSelected, hasFocus, getCustomBackground, getCustomForeground);
+					if (columnCfg!=null)
+						rendCompLabel.setHorizontalAlignment(columnCfg.horizontalAlignment);
 				}
 				else
 				{
