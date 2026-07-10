@@ -1,6 +1,7 @@
 package net.schwarzbaer.java.lib.gui;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -73,6 +74,10 @@ public class ImageTools
 		return bufferedImage;
 	}
 	
+	public static BufferedImage cutOut(BufferedImage image, Rectangle cutOut)
+	{
+		return cutOut(image, cutOut.x, cutOut.y, cutOut.width, cutOut.height);
+	}
 	public static BufferedImage cutOut(BufferedImage image, int x, int y, int width, int height)
 	{
 		BufferedImage bufferedImage = new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);

@@ -1,6 +1,8 @@
 package net.schwarzbaer.java.lib.gui;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -10,14 +12,20 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Vector;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extends Canvas implements MouseListener, MouseMotionListener, MouseWheelListener {
 	private static final long serialVersionUID = -1282219829667604150L;
+	
+	private static final Color TOOLTIP_TEXT   = Color.BLACK;
+	private static final Color TOOLTIP_FILL   = new Color(0xFFFFE1);
+	private static final Color TOOLTIP_BORDER = new Color(0x646464);
 
 	protected final VS viewState;
 	private Point panStart;
@@ -258,6 +266,29 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 		if (   withTopAxis) horizontalAxes.drawAxis ( g2, y+5       , x+20, width -40, true  );
 		if (withBottomAxis) horizontalAxes.drawAxis ( g2, y+height-5, x+20, width -40, false );
 		if (mapScale!=null) mapScale      .drawScale( g2, x+width-110, y+height-50, 60,15 );
+	}
+	
+	public static void drawTooltip(Graphics2D g2, java.awt.Point pos, String title)
+	{
+		if (pos==null) return;
+		
+		Rectangle2D bounds = g2.getFontMetrics().getStringBounds(title, g2);
+		
+		int textX = pos.x+10;
+		int textY = pos.y+20;
+		int boxX = (int)Math.round( textX+bounds.getX() ) - 3;
+		int boxY = (int)Math.round( textY+bounds.getY() );
+		int boxW = (int)Math.round( bounds.getWidth () ) + 6;
+		int boxH = (int)Math.round( bounds.getHeight() ) + 2;
+		
+		g2.setColor(TOOLTIP_BORDER);
+		g2.drawRect(boxX-1, boxY-1, boxW+1, boxH+1);
+		
+		g2.setColor(TOOLTIP_FILL);
+		g2.fillRect(boxX, boxY, boxW, boxH);
+		
+		g2.setColor(TOOLTIP_TEXT);
+		g2.drawString(title, textX, textY);
 	}
 
 	public static class MapLatLong {
@@ -525,6 +556,18 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 				convertPos_ScreenToAngle_LongX(point.x)
 			);
 		}
+		
+		public interface PointConstructor<PointType>
+		{
+			PointType create(double x, double y);
+		}
+		public <PointType> PointType convertPos_ScreenToAngle(Point point, PointConstructor<PointType> constructor)
+		{
+			double x = convertPos_ScreenToAngle_LongX(point.x);
+			double y = convertPos_ScreenToAngle_LatY (point.y);
+			return constructor.create(x,y);
+		}
+		
 		public double convertPos_ScreenToAngle_LongX(int x) {
 			if (tempPanOffset!=null) x -= tempPanOffset.x;
 			return center.longitude_x + hAxisSign * convertLength_ScreenToAngle_LongX(x - canvas.width /2f);
@@ -1046,6 +1089,104 @@ public abstract class ZoomableCanvas<VS extends ZoomableCanvas.ViewState> extend
 				
 				localOffsetY += rowHeight;
 			}
+		}
+	}
+	
+	public static class Handle
+	{
+		public record ShapeParams(
+			Color borderNormal,
+			Color fillNormal,
+			Color fillHighlighted,
+			int radius
+		) {
+			public static ShapeParams DEFAULT = new ShapeParams(
+					Color.GRAY, Color.GREEN, Color.YELLOW, 3
+			);
+		}
+		
+		public final String toolTipText;
+		public final int cursor;
+		public final Point2D.Double pos;
+		public final Function<Point2D.Double,Point2D.Double> setValue;
+		public final ShapeParams shapeParams;
+		
+		public Handle(
+				String toolTipText, int cursor,
+				double x, double y,
+				Function<Point2D.Double,Point2D.Double> setValue
+		) {
+			this( toolTipText, cursor, x,y, setValue, ShapeParams.DEFAULT );
+		}
+		
+		public Handle(
+				String toolTipText, int cursor,
+				double x, double y,
+				Function<Point2D.Double,Point2D.Double> setValue,
+				ShapeParams shapeParams
+		) {
+			this.toolTipText = toolTipText;
+			this.cursor = cursor;
+			this.setValue = setValue;
+			this.shapeParams = Objects.requireNonNull( shapeParams );
+			pos = new Point2D.Double(x, y);
+		}
+
+		public void setPos(Point2D.Double p)
+		{
+			if (setValue!=null)
+				p = setValue.apply(p);
+			if (p!=null)
+				pos.setLocation(p);
+		}
+
+		public void draw(ViewState viewState, Graphics2D g2, boolean isHighlighted)
+		{
+			int x = viewState.convertPos_AngleToScreen_LongX(pos.x);
+			int y = viewState.convertPos_AngleToScreen_LatY (pos.y);
+			
+			g2.setColor(isHighlighted ? shapeParams.fillHighlighted : shapeParams.fillNormal);
+			g2.fillOval(x-shapeParams.radius+1, y-shapeParams.radius+1, 2*shapeParams.radius-1, 2*shapeParams.radius-1);
+			g2.setColor(shapeParams.borderNormal);
+			g2.drawOval(x-shapeParams.radius, y-shapeParams.radius, 2*shapeParams.radius, 2*shapeParams.radius);
+		}
+		
+		public static void setCursor(Component comp, Handle handle)
+		{
+			comp.setCursor(Cursor.getPredefinedCursor(handle==null ? Cursor.DEFAULT_CURSOR : handle.cursor));
+		}
+		
+		public void drawTooltip(Graphics2D g2, Point mousePos)
+		{
+			if (toolTipText!=null)
+				ZoomableCanvas.drawTooltip(g2, mousePos, toolTipText);
+		}
+		
+		public static <HandleType extends Handle>
+		HandleType findNearestHandle(HandleType[] handles, MouseEvent e, ViewState viewState, double minDistanceOnScreen)
+		{
+			if (handles==null || e==null || viewState==null || !viewState.isOk())
+				return null;
+			
+			double mouseX = viewState.convertPos_ScreenToAngle_LongX(e.getX());
+			double mouseY = viewState.convertPos_ScreenToAngle_LatY (e.getY());
+			double minDistSq = Double.POSITIVE_INFINITY;
+			HandleType nearestHandle = null;
+			
+			for (HandleType handle : handles)
+			{
+				double squaredDistance = handle.pos.distanceSq(mouseX, mouseY);
+				if (minDistSq > squaredDistance)
+				{
+					minDistSq	= squaredDistance;
+					nearestHandle = handle;
+				}
+			}
+			
+			if (nearestHandle != null && viewState.convertLength_LengthToScreenF(Math.sqrt(minDistSq)) < minDistanceOnScreen)
+				return nearestHandle;
+			
+			return null;
 		}
 	}
 }
