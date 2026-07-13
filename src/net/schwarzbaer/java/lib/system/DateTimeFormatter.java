@@ -1,31 +1,36 @@
 package net.schwarzbaer.java.lib.system;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.Vector;
 
-public class DateTimeFormatter {
-	
-	private final Calendar cal;
-
-	public DateTimeFormatter() {
-		cal = Calendar.getInstance(TimeZone.getTimeZone("CET"), Locale.GERMANY);
-	}
-
-	public String getTimeStr(long millis, boolean withTextDay, boolean withDate, boolean dateIsLong, boolean withTime, boolean withTimeZone) {
+public class DateTimeFormatter
+{
+	public static String getTimeStr(long millis, boolean withTextDay, boolean withDate, boolean dateIsLong, boolean withTime, boolean withTimeZone) {
+		/*
 		cal.setTimeInMillis(millis);
 		return getTimeStr(cal, Locale.ENGLISH, withTextDay, withDate, dateIsLong, withTime, withTimeZone);
+		*/
+		return getTimeStr(millis, Locale.ENGLISH, getFormatStr(withTextDay, withDate, dateIsLong, withTime, withTimeZone));
 	}
 
-	public String getTimeStr(long millis, Locale locale, boolean withTextDay, boolean withDate, boolean dateIsLong, boolean withTime, boolean withTimeZone) {
+	public static String getTimeStr(long millis, Locale locale, boolean withTextDay, boolean withDate, boolean dateIsLong, boolean withTime, boolean withTimeZone) {
+		/*
 		cal.setTimeInMillis(millis);
 		return getTimeStr(cal, locale, withTextDay, withDate, dateIsLong, withTime, withTimeZone);
+		*/
+		return getTimeStr(millis, locale, getFormatStr(withTextDay, withDate, dateIsLong, withTime, withTimeZone));
 	}
 
-	public String getTimeStr(long millis, Locale locale, String format) {
+	public static String getTimeStr(long millis, Locale locale, String format) {
+		/*
 		cal.setTimeInMillis(millis);
 		return String.format(locale, format, cal);
+		*/
+		return String.format(locale, format, ZonedDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault()));
 	}
 
 	public static String getTimeStr(Calendar cal, boolean withTextDay, boolean withDate, boolean dateIsLong, boolean withTime, boolean withTimeZone) {
@@ -85,9 +90,13 @@ public class DateTimeFormatter {
 		return String.format("%d:%02d:%02d%s h", h, m, s, msStr);
 	}
 
-	public long getTimeInMillis(int year, int month, int date, int hourOfDay, int minute, int second) {
+	public static long getTimeInMillis(int year, int month, int date, int hourOfDay, int minute, int second) {
+		/*
 		cal.clear();
 		cal.set(year, month-1, date, hourOfDay, minute, second);
 		return cal.getTimeInMillis();
+		*/
+		ZonedDateTime dateTime = ZonedDateTime.of(year, month, date, hourOfDay, minute, second, 0, ZoneId.systemDefault());
+		return dateTime.toInstant().toEpochMilli();
 	}
 }
