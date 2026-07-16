@@ -42,11 +42,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JLayer;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.Popup;
@@ -61,6 +63,7 @@ import javax.swing.event.AncestorListener;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.plaf.LayerUI;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -2772,6 +2775,82 @@ public class Tables
 		public V[] toArray(IntFunction<V[]> generator)
 		{
 			return vec.toArray(generator);
+		}
+	}
+	
+	public static class RightCornerOverlay extends LayerUI<JScrollPane>
+	{
+		private static final long serialVersionUID = -3270459754559712322L;
+		
+		private final JTable table;
+		private final JScrollPane tableScrollPane;
+		private final JViewport viewport;
+		private       Icon content;
+		private final int marginX;
+		private final int marginY;
+		private       JLayer<JScrollPane> layer;
+
+		public RightCornerOverlay(JTable table, JScrollPane tableScrollPane, int marginX, int marginY)
+		{
+			this(table, tableScrollPane, marginX, marginY, null);
+		}
+		public RightCornerOverlay(JTable table, JScrollPane tableScrollPane, int marginX, int marginY, Icon content)
+		{
+			this.table           = Objects.requireNonNull( table );
+			this.tableScrollPane = Objects.requireNonNull( tableScrollPane );
+			viewport = this.tableScrollPane.getViewport();
+			this.setContent(content);
+			this.marginX = marginX;
+			this.marginY = marginY;
+			layer = null;
+		}
+		
+		public void setContent(Icon content)
+		{
+			this.content = content;
+			if (layer!=null)
+				layer.repaint();
+		}
+		
+		public JLayer<JScrollPane> createLayer()
+		{
+			return layer = new JLayer<>(tableScrollPane, this);
+		}
+		
+		public static JLayer<JScrollPane> createLayer(JTable table, JScrollPane tableScrollPane, int marginX, int marginY, Icon content)
+		{
+			return new RightCornerOverlay(table, tableScrollPane, marginX, marginY, content).createLayer();
+		}
+		
+		@Override
+		public void paint(Graphics g, JComponent c)
+		{
+			super.paint(g, c);
+			if (content==null)
+				return;
+			
+			g = g.create();
+			
+			Rectangle bounds = viewport.getBounds();
+			g.setClip(bounds);
+			
+			int selectedRow = table.getSelectedRow();
+			if (selectedRow>=0)
+			{
+				Rectangle selectedCellRect = table.getCellRect(selectedRow, 0, true);
+				Rectangle visibleRect      = table.getVisibleRect();
+				int centerS = selectedCellRect.y + selectedCellRect.height/2;
+				int centerV = visibleRect     .y + visibleRect     .height/2;
+				
+				int x = bounds.x + bounds.width - content.getIconWidth() - marginX;
+				int y = centerV > centerS
+						? bounds.y + bounds.height - content.getIconHeight() - marginY
+						: bounds.y + marginY;
+				
+				content.paintIcon(tableScrollPane, g, x, y);
+			}
+			
+			g.dispose();
 		}
 	}
 }
