@@ -42,6 +42,15 @@ public class DateTimeFormatter
 		return String.format(locale, format, cal);
 	}
 
+	public static String getSortableFormatStr(boolean withDate, boolean withTime, String delimiterD, String delimiterD2T, String delimiterT) {
+		delimiterD   = delimiterD==null ? "" : delimiterD;
+		delimiterT   = delimiterT==null ? "" : delimiterT;
+		delimiterD2T = delimiterD2T==null || !withDate || !withTime ? "" : delimiterD2T;
+		String dateStr = !withDate ? "" : "%s%s%s%s%s".formatted("%1$tY",delimiterD,"%1$tm",delimiterD,"%1$td");
+		String timeStr = !withTime ? "" : "%s%s%s%s%s".formatted("%1$tH",delimiterT,"%1$tM",delimiterT,"%1$tS");
+		return "%s%s%s".formatted(dateStr, delimiterD2T, timeStr);
+	}
+
 	public static String getFormatStr(boolean withTextDay, boolean withDate, boolean dateIsLong, boolean withTime, boolean withTimeZone) {
 		Vector<String> formatParts = new Vector<>(10);
 		if (withTextDay) formatParts.add("%1$tA"+getColon(withDate || withTime || withTimeZone));
