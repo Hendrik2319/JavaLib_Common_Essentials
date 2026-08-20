@@ -1,8 +1,10 @@
 package net.schwarzbaer.java.lib.gui;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
@@ -85,6 +87,16 @@ public class ValueListOutput extends Vector<ValueListOutput.Entry> {
 		generateOutput(baseIndent, new StyledDocumentOutput(doc, styleNamesPrefix, fontSize));
 	}
 	
+	public List<String> generateOutputToLines(String baseIndent) {
+		List<String> lines = new ArrayList<>();
+		generateOutput(baseIndent, new OutputTarget() {
+			@Override public void prepareOutput(Vector<Entry> entries) {}
+			@Override public void appendEmptyLine() { lines.add(""); }
+			@Override public void appendLine(Style prefixStyle, String prefix, Style valueStyle, String valueStr) { lines.add("%s%s".formatted(prefix, valueStr)); }
+		});
+		return lines;
+	}
+	
 	public void generateOutput(String baseIndent, OutputTarget out) {
 		HashMap<Integer,Integer> labelLengths = new HashMap<>();
 		HashMap<Integer,String> indents = new HashMap<>();
@@ -125,10 +137,17 @@ public class ValueListOutput extends Vector<ValueListOutput.Entry> {
 		
 	}
 	
-	interface OutputTarget {
+	public interface OutputTarget {
 		void appendEmptyLine();
 		void prepareOutput(Vector<Entry> entries);
 		void appendLine(Style prefixStyle, String prefix, Style valueStyle, String valueStr);
+		
+		public static abstract class SimplifiedOutputTarget implements OutputTarget
+		{
+			@Override public void prepareOutput(Vector<Entry> entries) {}
+			@Override public void appendLine(Style prefixStyle, String prefix, Style valueStyle, String valueStr) { appendLine(prefix, valueStr); }
+			protected abstract void appendLine(String prefix, String valueStr);
+		}
 	}
 	
 	static class StringBuilderOutput implements OutputTarget {
