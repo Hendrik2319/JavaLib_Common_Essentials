@@ -48,6 +48,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTree;
 import javax.swing.JViewport;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
@@ -57,6 +58,7 @@ import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
@@ -1367,6 +1369,29 @@ public class Tables
 		public Color bgColor = null;
 		public Color textColor = null;
 		
+		public final Border List_noFocusBorder             = getUIValue("List.noFocusBorder"            , Border.class, ()->EMPTY_BORDER );
+		public final Border List_focusCellHighlightBorder  = getUIValue("List.focusCellHighlightBorder" , Border.class, ()->DASHED_BORDER);
+		// public final Color  List_foreground             = getUIValue("List.foreground"               , Color .class, ()->null);
+		// public final Color  List_background             = getUIValue("List.background"               , Color .class, ()->null);
+		// public final Color  List_selectionForeground    = getUIValue("List.selectionForeground"      , Color .class, ()->null);
+		// public final Color  List_selectionBackground    = getUIValue("List.selectionBackground"      , Color .class, ()->null);
+		// public final Font   List_font                   = getUIValue("List.font"                     , Font  .class, ()->null);
+		public final Border Table_focusCellHighlightBorder = getUIValue("Table.focusCellHighlightBorder", Border.class, ()->DASHED_BORDER);
+		public final Color  Tree_selectionBackground       = getUIValue("Tree.selectionBackground"      , Color .class, ()->Color.GRAY);
+		public final Color  Tree_selectionBorderColor      = getUIValue("Tree.selectionBorderColor"     , Color .class, ()->Color.BLACK);
+		public final Color  Tree_selectionForeground       = getUIValue("Tree.selectionForeground"      , Color .class, ()->Color.BLACK);
+		public final Color  Tree_textBackground            = getUIValue("Tree.textBackground"           , Color .class, ()->Color.WHITE);
+		public final Color  Tree_textForeground            = getUIValue("Tree.textForeground"           , Color .class, ()->Color.BLACK);
+		public final Border Tree_focusBorder               = BorderFactory.createDashedBorder(Tree_selectionBorderColor);
+	
+		private static <V> V getUIValue(String key, Class<V> clazz, Supplier<V> createDefaultValue)
+		{
+			Object object = UIManager.get(key);
+			if (clazz.isInstance(object)) return clazz.cast(object);
+			System.out.printf("Default for UIValue[%s] used%n", key);
+			return createDefaultValue.get();
+		}
+		
 		public void configureAsTableCRC(JTable table, boolean isSelected, boolean hasFocus) {
 			configureAsTableCRC(table, isSelected, hasFocus, null, null);
 		}
@@ -1374,7 +1399,7 @@ public class Tables
 			this.isSelected = isSelected;
 			this.hasFocus = hasFocus;
 			setFont(font = table.getFont());
-			setBorder(hasFocus ? DASHED_BORDER : EMPTY_BORDER);
+			setBorder(hasFocus ? Table_focusCellHighlightBorder : EMPTY_BORDER);
 			setOpaque(true);
 			if (isSelected) {
 				setBackground(bgColor   = table.getSelectionBackground());
@@ -1397,9 +1422,9 @@ public class Tables
 				setOpaque(false);
 				bgColor = null;
 				setForeground(textColor = list.getForeground());
-				setBorder(isSelected ? DASHED_BORDER : EMPTY_BORDER);
+				setBorder(isSelected ? List_focusCellHighlightBorder : List_noFocusBorder);
 			} else {
-				setBorder(hasFocus ? DASHED_BORDER : EMPTY_BORDER);
+				setBorder(hasFocus ? List_focusCellHighlightBorder : List_noFocusBorder);
 				setOpaque(true);
 				if (isSelected) {
 					setBackground(bgColor   = list.getSelectionBackground());
@@ -1410,6 +1435,25 @@ public class Tables
 					setBackground(bgColor   = background==null ? list.getBackground() : background);
 					setForeground(textColor = foreground==null ? list.getForeground() : foreground);
 				}
+			}
+		}
+		public void configureAsTreeCRC(JTree tree, boolean isSelected, boolean hasFocus) {
+			configureAsTreeCRC(tree, isSelected, hasFocus, null, null);
+		}
+		public void configureAsTreeCRC(JTree tree, boolean isSelected, boolean hasFocus, Supplier<Color> getCustomForeground, Supplier<Color> getCustomBackground) {
+			this.isSelected = isSelected;
+			this.hasFocus = hasFocus;
+			setFont(font = tree.getFont());
+			setBorder(hasFocus ? Tree_focusBorder : EMPTY_BORDER);
+			setOpaque(true);
+			if (isSelected) {
+				setBackground(bgColor   = Tree_selectionBackground);
+				setForeground(textColor = Tree_selectionForeground);
+			} else {
+				Color background = getCustomBackground==null ? null : getCustomBackground.get();
+				Color foreground = getCustomForeground==null ? null : getCustomForeground.get();
+				setBackground(bgColor   = background==null ? Tree_textBackground : background);
+				setForeground(textColor = foreground==null ? Tree_textForeground : foreground);
 			}
 		}
 	
